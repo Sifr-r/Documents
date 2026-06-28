@@ -165,5 +165,5 @@ class Temperature:
 ## See Also
 
 - [core.md](core.md) — basic syntax
-- [functions.md](functions.md) — decorator patterns
+- [functions/README.md](functions/README.md) — decorator patterns
 - [typing.md](typing.md) — typed dataclasses, NamedTuple

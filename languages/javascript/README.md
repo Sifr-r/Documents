@@ -5,11 +5,13 @@ Modern JavaScript (ES2020+) and TypeScript reference. Covers runtime semantics
 
 ## Topics
 
+> **Note:** The documentation structure is currently being migrated from single `.md` files per topic to nested directories (e.g., `functions/`) to provide deeper context via backlinks and fringe case documentation.
+
 | File | Description |
 |---|---|
 | [core.md](core.md) | Syntax, types, operators, control flow, strict mode |
-| [functions.md](functions.md) | Declarations, arrow functions, closures, `this`, generators |
-| [async.md](async.md) | Promises, async/await, event loop, AbortController |
+| [functions/README.md](functions/README.md) | Declarations, arrow functions, closures, `this`, generators |
+| [async/README.md](async/README.md) | Promises, async/await, event loop, AbortController |
 | [modules.md](modules.md) | ESM, CommonJS, dynamic import, import attributes |
 | [patterns.md](patterns.md) | Common idioms, destructuring, optional chaining, nullish coalescing |
 

@@ -155,6 +155,6 @@ set.size;
 
 ## See Also
 
-- [functions.md](functions.md) — function declarations, arrows, closures
-- [async.md](async.md) — Promises, async/await
+- [functions/README.md](functions/README.md) — function declarations, arrows, closures
+- [async/README.md](async/README.md) — Promises, async/await
 - [modules.md](modules.md) — ESM and CommonJS

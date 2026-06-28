@@ -101,4 +101,4 @@ new Worker('./worker.js', { type: 'module' });
 ## See Also
 
 - [core.md](core.md) — general syntax
-- [async.md](async.md) — dynamic import, top-level await
+- [async/README.md](async/README.md) — dynamic import, top-level await

@@ -123,5 +123,5 @@ const result = [1, 2, 3, 4, 5]
 ## See Also
 
 - [core.md](core.md) — fundamental syntax
-- [functions.md](functions.md) — higher-order function patterns
-- [async.md](async.md) — async patterns
+- [functions/README.md](functions/README.md) — higher-order function patterns
+- [async/README.md](async/README.md) — async patterns

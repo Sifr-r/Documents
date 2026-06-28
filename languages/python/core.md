@@ -157,6 +157,6 @@ raise RuntimeError("boom") from original_error
 
 ## See Also
 
-- [functions.md](functions.md) — function definitions, decorators
+- [functions/README.md](functions/README.md) — function definitions, decorators
 - [typing.md](typing.md) — type hints
 - [patterns.md](patterns.md) — context managers, dataclasses

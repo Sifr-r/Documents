@@ -47,15 +47,6 @@ async function safe() {
 
 // Top-level await (ESM modules only, not CommonJS)
 const config = await fetch('/config.json').then(r => r.json());
-
-// Await vs .then() — sequential vs concurrent
-const a = await fetchA();  // waits
-const b = await fetchB();  // waits again (sequential)
-
-const [a, b] = await Promise.all([fetchA(), fetchB()]); // concurrent
-
-// Async iteration
-for await (const chunk of stream) { }
 ```
 
 ## Event Loop
@@ -75,47 +66,14 @@ for await (const chunk of stream) { }
 
 Order: Call stack empties → drain ALL microtasks → one macrotask → repeat.
 
-```js
-console.log("1");                  // sync
-setTimeout(() => console.log("2"), 0); // macrotask
-Promise.resolve().then(() => console.log("3")); // microtask
-console.log("4");                  // sync
-// Output: 1, 4, 3, 2
-```
+[See fringe-cases.md for Microtask Starvation](fringe-cases.md)
 
-## Timers
+## Related
 
-```js
-const id = setTimeout(() => {}, 1000);
-const id = setInterval(() => {}, 1000);
-clearTimeout(id);
-clearInterval(id);
-
-// Minimum delay is 4ms for nested timers; 0ms delay is clamped
-```
-
-## AbortController
-
-```js
-const controller = new AbortController();
-const { signal } = controller;
-
-fetch(url, { signal })
-  .then(res => res.json())
-  .catch(err => {
-    if (err.name === "AbortError") console.log("cancelled");
-  });
-
-controller.abort(); // cancels fetch
-
-// Abort with timeout
-const id = setTimeout(() => controller.abort(), 5000);
-// Or use AbortSignal.timeout(5000) (ES2023+)
-fetch(url, { signal: AbortSignal.timeout(5000) });
-```
+- [fringe-cases.md](fringe-cases.md) — Event Loop starvation, unhandled rejections
+- [alternatives.md](alternatives.md) — Promise.all vs sequential execution
+- [cross-reference.md](cross-reference.md) — JS vs Python Async
 
 ## See Also
-
-- [core.md](core.md) — types and syntax
-- [functions.md](functions.md) — async generators, closures
-- [patterns.md](patterns.md) — error handling patterns
+- [../core.md](../core.md) — types and syntax
+- [../functions/README.md](../functions/README.md) — async generators, closures

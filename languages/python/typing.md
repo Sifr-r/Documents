@@ -130,4 +130,4 @@ def forever() -> NoReturn: ...  # never returns (raises or infinite loop)
 ## See Also
 
 - [core.md](core.md) — runtime types
-- [functions.md](functions.md) — callable types, decorators
+- [functions/README.md](functions/README.md) — callable types, decorators

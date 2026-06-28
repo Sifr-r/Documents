@@ -10,6 +10,7 @@ function add(a, b) { return a + b; }
 const add = function(a, b) { return a + b; };
 
 // Arrow function (not hoisted, no own `this`, no `arguments`)
+// See fringe-cases.md for `this` binding issues
 const add = (a, b) => a + b;
 const identity = x => x;                // single param, no parens needed
 const returnObj = () => ({ key: 1 });   // wrap object in parens
@@ -43,22 +44,7 @@ process({ name: "Ada" }); // "Ada: 0"
 | Arrow `() => {}` | Lexical (enclosing scope's `this`) |
 | DOM event handler | The element |
 
-```js
-// Common pitfall — losing `this`
-class Timer {
-  constructor() {
-    this.seconds = 0;
-  }
-  start() {
-    setInterval(function() {
-      this.seconds++; // BUG: `this` is global/undefined
-    }, 1000);
-  }
-}
-// Fixes:
-// 1. Arrow:  setInterval(() => { this.seconds++; }, 1000);
-// 2. Bind:   setInterval(function() { this.seconds++; }.bind(this), 1000);
-```
+[See fringe-cases.md for common pitfalls regarding `this`](fringe-cases.md)
 
 ## Closures
 
@@ -83,6 +69,8 @@ Common use cases: data privacy (no `private` needed), factory functions, partial
 
 ## Generators
 
+[Generators often interact with async workflows. See async/README.md](../async/README.md)
+
 ```js
 function* range(start, end) {
   for (let i = start; i < end; i++) {
@@ -93,67 +81,14 @@ function* range(start, end) {
 for (const n of range(0, 5)) {
   console.log(n); // 0, 1, 2, 3, 4
 }
-
-const gen = range(0, 3);
-gen.next(); // { value: 0, done: false }
-gen.next(); // { value: 1, done: false }
-gen.next(); // { value: 2, done: false }
-gen.next(); // { value: undefined, done: true }
-
-// Async generators
-async function* asyncGen() {
-  for (const url of urls) {
-    yield await fetch(url).then(r => r.json());
-  }
-}
-
-for await (const data of asyncGen()) { }
 ```
 
-## Higher-Order Functions
+## Related
 
-```js
-// Once — ensure function runs only once
-function once(fn) {
-  let called = false, result;
-  return (...args) => {
-    if (!called) { called = true; result = fn(...args); }
-    return result;
-  };
-}
-
-// Memoize
-function memoize(fn) {
-  const cache = new Map();
-  return (arg) => {
-    if (cache.has(arg)) return cache.get(arg);
-    const result = fn(arg);
-    cache.set(arg, result);
-    return result;
-  };
-}
-
-// Debounce (trailing edge)
-function debounce(fn, ms) {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), ms);
-  };
-}
-
-// Throttle (leading edge)
-function throttle(fn, ms) {
-  let last = 0;
-  return (...args) => {
-    const now = Date.now();
-    if (now - last >= ms) { last = now; fn(...args); }
-  };
-}
-```
+- [fringe-cases.md](fringe-cases.md) — Arrow functions `this` binding, closure stale state
+- [alternatives.md](alternatives.md) — Higher-order functions vs loops
+- [cross-reference.md](cross-reference.md) — JS vs Python Functions
 
 ## See Also
-
-- [core.md](core.md) — syntax, types
-- [async.md](async.md) — async functions, Promises
-- [patterns.md](patterns.md) — destructuring, spread, optional chaining
+- [../core.md](../core.md) — syntax, types
+- [../patterns.md](../patterns.md) — destructuring, spread, optional chaining

@@ -5,11 +5,13 @@ and type annotations.
 
 ## Topics
 
+> **Note:** The documentation structure is currently being migrated from single `.md` files per topic to nested directories (e.g., `functions/`) to provide deeper context via backlinks and fringe case documentation.
+
 | File | Description |
 |---|---|
 | [core.md](core.md) | Syntax, types, control flow, comprehensions |
-| [functions.md](functions.md) | Definitions, lambdas, decorators, generators |
-| [async.md](async.md) | asyncio, coroutines, tasks, event loop |
+| [functions/README.md](functions/README.md) | Definitions, lambdas, decorators, generators |
+| [async/README.md](async/README.md) | asyncio, coroutines, tasks, event loop |
 | [typing.md](typing.md) | Type hints, Protocol, TypedDict, generics |
 | [patterns.md](patterns.md) | Context managers, dataclasses, match/case, error handling |
 

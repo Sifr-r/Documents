@@ -3,6 +3,8 @@
 Browser-native web technologies: HTML, CSS, and Web APIs. Covers standards
 supported across modern browsers (Chrome, Firefox, Safari, Edge).
 
+> **Source:** This documentation is primarily sourced and adapted from the [MDN Web Docs content repository](https://github.com/mdn/content).
+
 ## Topics
 
 | File | Description |

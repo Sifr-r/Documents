@@ -17,9 +17,9 @@ the Model Context Protocol (MCP) for sub-10ms lookups.
 
 | Directory | Covers |
 |---|---|
-| `languages/` | 24 programming languages: JS, TS, Python, Rust, Go, Java, C#, C++, Kotlin, Swift, Ruby, PHP, Scala, Dart, Lua, Bash, Elixir, Haskell, Clojure, Zig, Julia, R, Erlang, Groovy, Solidity, OCaml, F#, V |
+| `languages/` | 28 programming languages: JS, TS, Python, Rust, Go, Java, C#, C++, Kotlin, Swift, Ruby, PHP, Scala, Dart, Lua, Bash, Elixir, Haskell, Clojure, Zig, Julia, R, Erlang, Groovy, Solidity, OCaml, F#, V |
 | `frameworks/` | 24 web frameworks: React, Vue, Angular, Svelte, Next.js, Nuxt, Remix, SolidJS, Astro, Qwik, Tailwind, htmx, Django, Flask, FastAPI, Rails, Laravel, Spring Boot, Express, NestJS, Gin, Phoenix, Actix, Hono |
-| `databases/` | 7 databases & ORMs: PostgreSQL, MySQL, SQLite, MongoDB, Redis, Prisma, Drizzle |
+| `databases/` | 8 databases & ORMs: PostgreSQL, MySQL, SQLite, MongoDB, Redis, Prisma, Drizzle, Vector DBs |
 | `devops/` | 6 DevOps tools: Docker, Kubernetes, GitHub Actions, Terraform, Nginx, GraphQL |
 | `web-platform/` | HTML elements, CSS properties, Web APIs |
 | `concepts/` | HTTP, Git, testing, databases |

@@ -14,9 +14,9 @@ query in milliseconds.
 ## Structure
 
 ```
-languages/          # 24 programming languages (JS, Python, Rust, Go, Java, C#, …)
+languages/          # 28 programming languages (JS, Python, Rust, Go, Java, C#, …)
 frameworks/         # 24 web frameworks (React, Vue, Django, FastAPI, Rails, …)
-databases/          # 7 databases & ORMs (PostgreSQL, MongoDB, Redis, Prisma, …)
+databases/          # 8 databases & ORMs (PostgreSQL, MongoDB, Redis, Prisma, Vector DBs, …)
 devops/             # 6 DevOps tools (Docker, Kubernetes, Terraform, Nginx, …)
 web-platform/       # HTML, CSS, Web APIs
 concepts/           # Cross-cutting topics (HTTP, Git, Testing, Databases …)

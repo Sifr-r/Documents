@@ -17,8 +17,8 @@ Copy this directory to create a new documentation domain.
 
 ## Conventions
 
-- One `.md` file per topic (max ~300 lines for optimal LLM context window)
-- Start every file with a level-1 heading (`# Topic Name`)
-- Include code examples in fenced blocks with language identifiers
-- End each file with a "See Also" section linking to related topics
-- Write in reference style — concise, factual, no fluff
+- **One directory per topic**: Create a folder for each topic instead of a single `.md` file.
+- **Nested topic files**: Inside the topic directory, create `README.md` (core), `fringe-cases.md`, `alternatives.md`, and `cross-reference.md`.
+- **Inline Backlinks**: Actively link between topics and fringe cases to provide LLMs with better context.
+- **Cross-Language References**: Use `cross-reference.md` to map concepts to equivalent features in other languages.
+- **Markdown only**: Ensure code examples use fenced blocks with language identifiers.

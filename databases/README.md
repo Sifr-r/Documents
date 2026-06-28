@@ -24,6 +24,12 @@ Reference documentation for popular databases and ORMs.
 | Prisma | TypeScript | [prisma/](prisma/) |
 | Drizzle | TypeScript | [drizzle/](drizzle/) |
 
+## Vector Databases
+
+| Database | Description | Directory |
+|---|---|---|
+| Vector DBs | Vector search for AI/LLMs | [vector-dbs/](vector-dbs/) |
+
 ## Quick Reference
 
 ```sql
