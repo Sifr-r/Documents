@@ -1,0 +1,10 @@
+# Fringe Cases
+
+## Warnings & Notes
+
+> [!NOTE]
+> Size containers' descendants can be sized using [container query length units](/en-US/docs/Web/CSS/Guides/Containment/Container_queries#container_query_length_units).
+
+> [!NOTE]
+> A shorthand syntax for these declarations are described in the {{cssxref("container")}} page.
+

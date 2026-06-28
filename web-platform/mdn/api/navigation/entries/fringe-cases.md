@@ -1,0 +1,6 @@
+# Fringe Cases
+
+## Exceptions
+
+None.
+

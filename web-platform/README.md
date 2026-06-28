@@ -12,6 +12,7 @@ supported across modern browsers (Chrome, Firefox, Safari, Edge).
 | [html.md](html.md) | Elements, attributes, forms, semantic markup, accessibility |
 | [css.md](css.md) | Selectors, layout, flexbox, grid, custom properties, animations |
 | [web-apis.md](web-apis.md) | DOM, fetch, storage, Web Workers, observers |
+| [mdn/](mdn/) | **Complete MDN Web Docs Reference (12,000+ API entries)** |
 
 ## Quick Reference
 
