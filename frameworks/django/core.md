@@ -260,7 +260,7 @@ Article.objects.select_related("author")
 Author.objects.prefetch_related("books")
 
 # Annotation and aggregation
-Article.objects.annotate(word_count=Count("body"))
+Article.objects.annotate(article_count=Count("id"))
 Article.objects.values("author__name").annotate(total=Count("id"))
 Article.objects.aggregate(avg_views=Avg("views"))
 

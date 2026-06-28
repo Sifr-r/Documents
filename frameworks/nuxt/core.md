@@ -106,7 +106,7 @@ Helpers: `getQuery(event)`, `readBody(event)`, `getRouterParam(event, 'key')`, `
 
 ```vue
 <script setup lang="ts">
-const { data, pending, error, refresh, execute } = await useFetch('/api/posts', {
+const { data, pending, error, refresh } = await useFetch('/api/posts', {
   method: 'GET',
   query: { page: 1, limit: 10 },
   pick: ['id', 'title'],              // only keep these fields

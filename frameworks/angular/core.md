@@ -326,12 +326,13 @@ export class AppComponent {
 
 ```ts
 import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-form',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CommonModule],
   template: `
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <input formControlName="name" placeholder="Name" />

@@ -97,7 +97,7 @@ COMMIT;
 | Repeatable Read | No | No | Yes |
 | Serializable | No | No | No |
 
-Default: Read Committed (most DBs), Repeatable Read (PostgreSQL default).
+Default: Read Committed (PostgreSQL, most DBs), Repeatable Read (MySQL default).
 
 ## Connection Pooling
 
@@ -115,10 +115,10 @@ engine = create_async_engine(
 
 ```go
 // pgxpool (Go)
-pool, _ := pgxpool.New(ctx, os.Getenv("DATABASE_URL"))
+config, _ := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
+config.MaxConns = 10
+pool, _ := pgxpool.NewWithConfig(ctx, config)
 defer pool.Close()
-
-pool.Config().MaxConns = 10
 ```
 
 ## Migrations

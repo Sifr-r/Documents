@@ -6,7 +6,7 @@
 // Selection
 const el = document.querySelector('.class');
 const els = document.querySelectorAll('[data-attr]');
-const el = document.getElementById('id');
+const el2 = document.getElementById('id');
 
 // Create & modify
 const div = document.createElement('div');

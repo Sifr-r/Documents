@@ -307,7 +307,8 @@ await db.insert(users).values([
 await db.select({ id: users.id, name: users.name }).from(users);
 
 // Use indexes via schema
-export const emailIdx = pgIndex("email_idx").on(users.email);
+import { index } from "drizzle-orm/pg-core";
+export const emailIdx = index("email_idx").on(users.email);
 ```
 
 ## See Also

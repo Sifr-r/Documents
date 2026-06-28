@@ -12,9 +12,9 @@ func main() {
     r := gin.Default()
 
     // Or create without default middleware
-    r := gin.New()
-    r.Use(gin.Logger())
-    r.Use(gin.Recovery())
+    r2 := gin.New()
+    r2.Use(gin.Logger())
+    r2.Use(gin.Recovery())
 
     r.Run(":8080")           // Listen on :8080
     r.RunTLS(":443", "cert.pem", "key.pem") // HTTPS

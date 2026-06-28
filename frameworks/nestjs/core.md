@@ -195,11 +195,11 @@ findOne(@Param("id", ParseIntPipe) id: number) { /* ... */ }
 ## Interceptors
 
 ```typescript
-import { Interceptor, CallHandler, ExecutionContext, Injectable } from "@nestjs/common";
+import { NestInterceptor, CallHandler, ExecutionContext, Injectable } from "@nestjs/common";
 import { map, Observable } from "rxjs";
 
 @Injectable()
-export class TransformInterceptor implements Interceptor {
+export class TransformInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       map(data => ({ data, timestamp: Date.now() })),

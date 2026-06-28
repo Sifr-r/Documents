@@ -156,7 +156,7 @@ let user2 = User {
     name: "Bob".into(),
     ..user  // copy remaining fields
 };
-// Note: user.age is moved (i32 is Copy, so trivial)
+// Note: user.age is copied (u8 is Copy) — user remains usable
 // If active were String, user could no longer be used
 ```
 

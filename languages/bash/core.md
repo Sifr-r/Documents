@@ -195,4 +195,5 @@ fi
 
 ## See Also
 
-- [scripting.md](scripting.md) — patterns, file ops, text processing
+- [Bash Manual](https://www.gnu.org/software/bash/manual/) — Official GNU Bash reference
+- [Bash Hackers Wiki](https://wiki.bash-hackers.org/) — Advanced scripting patterns and best practices

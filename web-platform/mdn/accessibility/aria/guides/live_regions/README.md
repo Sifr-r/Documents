@@ -114,7 +114,7 @@ As the user selects a new planet, the information in the live region will be ann
 
 Here is a screenshot of VoiceOver on Mac announcing the update (via subtitles) to the live region:
 
-![A screenshot of VoiceOver on Mac announcing the update to a live region. Subtitles are shown in the picture.](web_accessibility_aria_aria_live_regions.png)
+[A screenshot of VoiceOver on Mac announcing the update to a live region. Subtitles are shown in the picture.](web_accessibility_aria_aria_live_regions.png)
 
 ## Roles with implicit live region attributes
 

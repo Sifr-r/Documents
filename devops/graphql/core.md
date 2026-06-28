@@ -28,11 +28,12 @@ input CreateUserInput {
   role: Role = USER
 }
 
-# Union type
+# Object type with union field
 type SearchResults {
   results: [SearchResult!]!
 }
 
+# Union type
 union SearchResult = User | Post
 
 # Interface
@@ -142,7 +143,7 @@ mutation UpdatePost($id: ID!, $input: UpdatePostInput!) {
 mutation DeletePost($id: ID!) {
   deletePost(id: $id) {
     id
-    deleted: __typename
+    typename: __typename
   }
 }
 

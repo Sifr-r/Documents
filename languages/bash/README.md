@@ -6,8 +6,7 @@ Bash 5+ reference for shell scripting, automation, and DevOps.
 
 | File | Description |
 |---|---|
-| [core.md](core.md) | Syntax, variables, control flow, functions, subshells |
-| [scripting.md](scripting.md) | Common patterns, error handling, file ops, text processing |
+| [core.md](core.md) | Syntax, variables, control flow, functions, subshells, scripting patterns, error handling |
 
 ## Quick Reference
 

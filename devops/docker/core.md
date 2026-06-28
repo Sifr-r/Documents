@@ -3,18 +3,28 @@
 ## Dockerfile Instructions
 
 ```dockerfile
-FROM node:20-alpine          # Base image (required, must be first)
-RUN apk add --no-cache git   # Execute command during build (new layer)
-COPY package.json ./         # Copy from host (build context)
-ADD archive.tar.gz /opt      # Copy + auto-extract archives + URL support
-WORKDIR /app                 # Set working directory
-ENV NODE_ENV=production      # Set environment variable
-EXPOSE 3000                  # Document port (does not publish)
-USER node                    # Switch user (non-root best practice)
+# Base image (required, must be first)
+FROM node:20-alpine
+# Execute command during build (new layer)
+RUN apk add --no-cache git
+# Copy from host (build context)
+COPY package.json ./
+# Copy + auto-extract archives + URL support
+ADD archive.tar.gz /opt
+# Set working directory
+WORKDIR /app
+# Set environment variable
+ENV NODE_ENV=production
+# Document port (does not publish)
+EXPOSE 3000
+# Switch user (non-root best practice)
+USER node
 HEALTHCHECK --interval=30s --timeout=3s \
   CMD curl -f http://localhost:3000/ || exit 1
-CMD ["node", "index.js"]     # Default command (overridable)
-ENTRYPOINT ["node"]          # Executable (not overridable without --entrypoint)
+# Default command (overridable)
+CMD ["node", "index.js"]
+# Executable (not overridable without --entrypoint)
+ENTRYPOINT ["node"]
 ```
 
 **CMD vs ENTRYPOINT:**

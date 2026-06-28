@@ -6,13 +6,14 @@ An embedding is an array (vector) of floating-point numbers that represents the 
 
 ```python
 # Example: Using OpenAI to get an embedding
-import openai
+from openai import OpenAI
+client = OpenAI()
 
-response = openai.Embedding.create(
+response = client.embeddings.create(
     input="What is a vector database?",
     model="text-embedding-ada-002"
 )
-vector = response['data'][0]['embedding'] # e.g. [0.012, -0.003, 0.045, ...]
+vector = response.data[0].embedding  # e.g. [0.012, -0.003, 0.045, ...]
 ```
 
 ## Distance Metrics

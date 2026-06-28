@@ -176,8 +176,7 @@ auto get_value(T t) {
     } else if constexpr (std::is_integral_v<T>) {
         return t;                               // integral path
     } else {
-        static_assert(false, "unsupported");    // triggers at compile time
-        // NOTE: use `static_assert(sizeof(T) == 0)` for always-false
+        static_assert(sizeof(T) == 0, "unsupported type for get_value");
     }
 }
 

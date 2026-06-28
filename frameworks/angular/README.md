@@ -57,6 +57,7 @@ export class CounterComponent {
 
 ```ts
 import { inject, Injectable } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
@@ -66,6 +67,7 @@ export class DataService {
 @Component({
   selector: 'app-list',
   standalone: true,
+  imports: [CommonModule],
   template: `<li *ngFor="let item of items">{{ item }}</li>`
 })
 export class ListComponent {

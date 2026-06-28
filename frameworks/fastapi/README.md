@@ -49,6 +49,9 @@ class ItemCreate(BaseModel):
     price: float = Field(..., gt=0)
     description: str | None = None
 
+class Item(ItemCreate):
+    id: int
+
 @app.post("/items/", response_model=Item)
 async def create_item(item: ItemCreate):
     return item

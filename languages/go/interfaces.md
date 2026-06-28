@@ -147,8 +147,8 @@ func Sum[T Number](nums []T) T {
     return total
 }
 
-// constraints package (golang.org/x/exp/constraints)
-// constraints.Ordered — <, >, <=, >=
+// constraints.Ordered in the standard library (cmp package, Go 1.21+)
+// cmp.Ordered — <, >, <=, >=
 ```
 
 ## Interface Best Practices

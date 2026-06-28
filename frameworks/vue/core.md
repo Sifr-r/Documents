@@ -344,6 +344,8 @@ const user = inject('user')
 </template>
 
 <script setup>
+import { defineAsyncComponent } from 'vue'
+
 // Async component
 const AsyncComponent = defineAsyncComponent(() => 
   import('./AsyncComponent.vue')

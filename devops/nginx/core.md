@@ -130,7 +130,8 @@ server {
 
 ```nginx
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
     server_name example.com;
 
     ssl_certificate /etc/ssl/certs/example.com.pem;
@@ -257,7 +258,6 @@ server {
 ```nginx
 add_header X-Frame-Options "SAMEORIGIN" always;
 add_header X-Content-Type-Options "nosniff" always;
-add_header X-XSS-Protection "1; mode=block" always;
 add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 add_header Content-Security-Policy "default-src 'self'" always;
 add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;

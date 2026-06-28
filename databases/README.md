@@ -40,6 +40,6 @@ SELECT * FROM users WHERE age > 18 ORDER BY created_at DESC LIMIT 10;
 db.users.find({ age: { $gt: 18 } }).sort({ created_at: -1 }).limit(10);
 
 -- Redis
-HSET user:1 name "Alice" age 30
+HSET user:1 name Alice age 30
 HGETALL user:1
 ```

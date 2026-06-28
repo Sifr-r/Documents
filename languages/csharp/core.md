@@ -92,7 +92,7 @@ public readonly record struct Point(int X, int Y);
 ## Collections
 
 ```csharp
-// Immutable
+// Common collections
 var list = new List<string> { "a", "b", "c" };
 var arr = new[] { 1, 2, 3 };
 var dict = new Dictionary<string, int> { ["a"] = 1, ["b"] = 2 };
