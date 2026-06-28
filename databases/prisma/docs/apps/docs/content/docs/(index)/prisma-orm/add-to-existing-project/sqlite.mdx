@@ -1,0 +1,139 @@
+# SQLite
+
+## Introduction
+
+[SQLite](https://sqlite.org) is a lightweight, file-based database that's perfect for development, prototyping, and small applications. It requires no setup and stores data in a local file. In this guide, you will learn how to add Prisma ORM to an existing TypeScript project, connect it to SQLite, introspect your existing database schema, and start querying with type-safe Prisma Client.
+
+## 1. Set up Prisma ORM
+
+Navigate to your existing project directory and install the required dependencies:
+
+```npm
+npm install prisma @types/node @types/better-sqlite3 --save-dev
+npm install @prisma/client @prisma/adapter-better-sqlite3 dotenv
+```
+
+Here's what each package does:
+
+- **`prisma`** - The Prisma CLI for running commands like `prisma init`, `prisma db pull`, and `prisma generate`
+- **`@prisma/client`** - The Prisma Client library for querying your database
+- **`@prisma/adapter-better-sqlite3`** - The SQLite driver adapter that connects Prisma Client to your database
+- **`@types/better-sqlite3`** - TypeScript type definitions for better-sqlite3
+- **`dotenv`** - Loads environment variables from your `.env` file
+
+## 2. Initialize Prisma ORM
+
+Set up your Prisma ORM project by creating your [Prisma Schema](/orm/prisma-schema/overview) file with the following command:
+
+```npm
+npx prisma init --datasource-provider sqlite --output ../generated/prisma
+```
+
+This command does a few things:
+
+- Creates a `prisma/` directory with a `schema.prisma` file containing your database connection configuration
+- Creates a `.env` file in the root directory for environment variables
+- Creates a `prisma.config.ts` file for Prisma configuration
+
+The generated `prisma.config.ts` file looks like this:
+
+```typescript title="prisma.config.ts"
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  datasource: {
+    url: env("DATABASE_URL"),
+  },
+});
+```
+
+The generated schema uses [the ESM-first `prisma-client` generator](/orm/prisma-schema/overview/generators#prisma-client) with a custom output path:
+
+```prisma title="prisma/schema.prisma"
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+```
+
+A `.env` file should be created with the following value:
+
+```text title=".env"
+DATABASE_URL="file:./dev.db"
+```
+
+## 3. Connect your database
+
+Update the `.env` file to point to your existing SQLite database file:
+
+```text title=".env"
+DATABASE_URL="file:./path/to/your/database.db"
+```
+
+## 7. Instantiate Prisma Client
+
+Create a utility file to instantiate Prisma Client. You need to pass an instance of the Prisma ORM driver adapter adapter to the `PrismaClient` constructor:
+
+```typescript title="lib/prisma.ts"
+import "dotenv/config";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaClient } from "../generated/prisma/client";
+
+const connectionString = `${process.env.DATABASE_URL}`;
+
+const adapter = new PrismaBetterSqlite3({ url: connectionString });
+const prisma = new PrismaClient({ adapter });
+
+export { prisma };
+```
+
+### Using SQLite with Bun
+Bun doesn't support the native SQLite driver that `better-sqlite3` relies on (see the [`node:sqlite` reference](https://bun.com/reference/node/sqlite)). When targeting Bun, use the `@prisma/adapter-libsql` adapter instead:
+
+```ts
+import "dotenv/config";
+import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { PrismaClient } from "../generated/prisma/client";
+
+const adapter = new PrismaLibSql({
+  url: process.env.DATABASE_URL ?? "",
+});
+
+const prisma = new PrismaClient({ adapter });
+
+export { prisma };
+```
+
+## 10. Explore your data with Prisma Studio
+
+- File paths must have a `file:` protocol right now in the database URL for SQLite
+- **Node.js 22.5+**: Works out of the box with the built-in `node:sqlite` module
+  - May require `NODE_OPTIONS=--experimental-sqlite` environment variable
+- **Node.js 20**: Requires installing `better-sqlite3` as a dependency
+  - If using pnpm 10+ with `pnpx`, you'll need the [`--allow-build=better-sqlite3`](https://pnpm.io/cli/dlx#--allow-build) flag
+- **Deno >= 2.2**: Supported via [built-in SQLite module](https://docs.deno.com/api/node/sqlite/)
+- **Bun**: Support for Prisma Studio with SQLite is coming soon and is not available yet
+
+### Using `npx` with `better-sqlite3`
+
+If you don't have `node:sqlite` available in your runtime or prefer not to install `better-sqlite3` as a hard dependency (it adds ~10MB), you can use `npx` to temporarily install the required packages:
+
+```npm
+npx -p better-sqlite3 -p prisma prisma studio --url file:./path/to/your/database.db
+```
+
+This command:
+
+- Temporarily installs `better-sqlite3` without adding it to your project dependencies
+- Runs Prisma Studio with the specified SQLite database file
+- Avoids the 10MB overhead of `better-sqlite3` in your project
+

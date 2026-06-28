@@ -1,0 +1,67 @@
+# Deploy to Railway
+
+## Deploy your application
+
+### 1. Create a new Railway project
+
+1. Go to the [Railway dashboard](https://railway.com/dashboard?utm_medium=integration&utm_source=docs&utm_campaign=prisma)
+2. Click **Create a New Project**
+3. Select **GitHub Repo**
+4. Click **Configure GitHub App** and authorize Railway
+5. Select your repository
+
+Your application is now deploying to Railway, but it won't properly run without a database connection.
+
+In the next section, you'll configure a database and set the `DATABASE_URL` environment variable in Railway.
+
+![Railway deploying application](/img/v6/orm/prisma-client/deployment/traditional/images/railway-deploying.png)
+
+## Configure your database
+
+### 1. Get your database connection string
+
+You'll need a Prisma Postgres connection string. There are two ways to obtain one:
+
+- Create a new database on [Prisma Data Platform](https://console.prisma.io)
+- Run `npx create-db` for a temporary database _(no account required)_
+
+### 2. Add the database URL to Railway
+
+1. In your Railway project, open your service
+2. Go to the **Variables** tab
+3. Click **New Variable**
+4. Set the name to `DATABASE_URL`
+5. Paste your database connection string as the value
+6. Click **Deploy** to redeploy your application with the new environment variable
+
+![Railway environment variables setup](/img/v6/orm/prisma-client/deployment/traditional/images/railway-env-vars.png)
+
+### 3. Access your application
+
+Once the deployment completes with the database URL configured:
+
+1. Navigate to the **Settings** tab
+2. Under **Networking**, click **Generate Domain**
+3. Your application will be available at the generated URL
+
+![Railway networking settings](/img/v6/orm/prisma-client/deployment/traditional/images/railway-networking.png)
+
+Go to the generated URL and you'll see your deployed app!
+
+If you used the example project, you should see three api endpoints already set up:
+
+- Check API status (`/api`)
+- Load feed (`/api/feed`)
+- Seed data (`/api/seed`)
+
+![Railway deployed application](/img/v6/orm/prisma-client/deployment/traditional/images/railway-final-product.png)
+
+If you see any errors:
+
+- Wait a minute and refresh
+- Ensure `DATABASE_URL` is set
+- Check the service logs
+- Redeploy
+
+To learn more about the various features Railway offers for your application, visit the [Railway documentation](https://docs.railway.app?utm_medium=integration&utm_source=docs&utm_campaign=prisma).
+

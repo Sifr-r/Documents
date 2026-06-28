@@ -1,0 +1,50 @@
+# Full-text search
+
+## Introduction
+
+Prisma Client supports full-text search for MySQL and for PostgreSQL with the `fullTextSearchPostgres` preview feature.
+
+## Enabling full-text search for PostgreSQL
+
+Add the preview flag to your generator and re-generate Prisma Client:
+
+```prisma title="schema.prisma"
+generator client {
+  provider        = "prisma-client"
+  output          = "./generated"
+  previewFeatures = ["fullTextSearchPostgres"]
+}
+```
+
+```npm
+npx prisma generate
+```
+
+## Search within a text field
+
+```ts
+const posts = await prisma.post.findMany({
+  where: {
+    body: {
+      search: "cat | dog",
+    },
+  },
+});
+```
+
+## Sort by relevance
+
+Prisma Client also supports relevance-based ordering on supported databases:
+
+```ts
+const posts = await prisma.post.findMany({
+  orderBy: {
+    _relevance: {
+      fields: ["title"],
+      search: "database",
+      sort: "desc",
+    },
+  },
+});
+```
+

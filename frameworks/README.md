@@ -18,6 +18,9 @@ Reference documentation for the most-used web frameworks and tools across fronte
 | Qwik | Resumable framework for instant loading | [qwik/](qwik/) |
 | Tailwind CSS | Utility-first CSS framework (3+) | [tailwind/](tailwind/) |
 | htmx | HTML over the wire | [htmx/](htmx/) |
+| React Aria | UI component primitives and hooks | [react-aria/](react-aria/) |
+| React Router | React routing and navigation (7) | [react-router/](react-router/) |
+| Zustand | Barebones hooks-based state management | [zustand/](zustand/) |
 
 ## Backend Frameworks
 
@@ -31,10 +34,21 @@ Reference documentation for the most-used web frameworks and tools across fronte
 | Spring Boot | Java | [spring-boot/](spring-boot/) |
 | Express | JavaScript/TypeScript | [express/](express/) |
 | NestJS | TypeScript | [nestjs/](nestjs/) |
+| Fastify | JavaScript/TypeScript | [fastify/](fastify/) |
 | Gin | Go | [gin/](gin/) |
 | Phoenix | Elixir | [phoenix/](phoenix/) |
 | Actix Web | Rust | [actix/](actix/) |
 | Hono | Multi-runtime | [hono/](hono/) |
+| LangChain | JavaScript/TypeScript (AI) | [langchain/](langchain/) |
+
+## Testing & Quality
+
+| Framework | Description | Directory |
+|---|---|---|
+| Cypress | End-to-end web testing | [cypress/](cypress/) |
+| Playwright | Modern end-to-end testing | [playwright/](playwright/) |
+| Jest | JavaScript testing framework | [jest/](jest/) |
+| Vitest | Vite-native unit testing | [vitest/](vitest/) |
 
 ## Quick Reference
 

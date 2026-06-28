@@ -1,0 +1,44 @@
+# layout.html
+
+## Introduction
+
+{% extends "basic/layout.html" %} {%- macro secondnav() %} {%- if prev %} « [previous]({{ prev.link|e }} "{{ prev.title|e }}") {{ reldelim2 }} {%- endif %} {%- if parents %} [up]({{ parents.0.link|e }} "{{ parents.0.title|e }}") {%- else %} [up]({{ pathto\('index'\) }} "{{ docstitle }}") {%- endif %} {%- if next %} {{ reldelim2 }} [next]({{ next.link|e }} "{{ next.title|e }}") » {%- endif %} {%- endmacro %} {% block extrahead %} {# When building htmlhelp (CHM format) disable jQuery inclusion, #} {# as it causes problems in compiled CHM files. #} {% if builder != "htmlhelp" %} {{ super() }}  {% endif %} {%- if include\_console\_assets -%}  {%- endif -%} {% endblock %} {% block document %}
+
+# [{{ docstitle }}]({{ pathto\('index'\) }})
+
+[Home]({{ pathto\('index'\) }} "Home page") {{ reldelim2 }} [Table of contents]({{ pathto\('contents'\) }} "Table of contents") {{ reldelim2 }} [Index]({{ pathto\('genindex'\) }} "Global index") {{ reldelim2 }} [Modules]({{ pathto\('py-modindex'\) }} "Module index")
+
+{{ secondnav() }}
+
+{% block body %}{% endblock %}
+
+{% block sidebarwrapper %} {% if pagename != 'index' %}
+
+{{ sidebar() }} {%- if last\_updated %}
+
+### Last update:
+
+{{ last\_updated }}
+
+{%- endif %}
+
+{% endif %} {% endblock %}
+
+{{ secondnav() }}
+
+{% endblock %} {% block sidebarrel %}
+
+### Browse
+
+{% if prev %}*   Prev: [{{ prev.title }}]({{ prev.link }})
+{% endif %} {% if next %}*   Next: [{{ next.title }}]({{ next.link }})
+{% endif %}
+
+### You are here:
+
+*   [{{ docstitle }}]({{ pathto\('index'\) }}) {% for p in parents %}
+    *   [{{ p.title }}]({{ p.link }}) {% endfor %}
+        *   {{ title }}{% for p in parents %}{% endfor %}
+
+{% endblock %} {# Empty some default blocks out #} {% block relbar1 %}{% endblock %} {% block relbar2 %}{% endblock %} {% block sidebar1 %}{% endblock %} {% block sidebar2 %}{% endblock %} {% block footer %}{% endblock %}
+

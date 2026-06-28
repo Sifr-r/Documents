@@ -1,0 +1,181 @@
+# Install using npm, Yarn, or pnpm | Cypress Documentation
+
+## Introduction
+
+<ProductHeading product="app" />
+
+# Installation
+
+:::info
+
+##### <Icon name="question-circle" color="#4BBFD2" /> What you'll learn
+
+- How to install Cypress using npm, Yarn, or pnpm
+- What you need before installing
+- Advanced installation options
+
+:::
+
+## Install & Run
+
+1. **Check Requirements:** make sure you meet the [system requirements](#System-requirements) including
+   operating system, installation of Node.js and a supported package manager.
+2. **Run in your project root:** This will install Cypress locally as a dev dependency for your project.
+
+3. **Open Cypress:** This launches the Cypress App so you can choose end-to-end (E2E) or component testing (CT) and start writing tests.
+
+4. **Write your first test:** Start with [E2E](/app/end-to-end-testing/writing-your-first-end-to-end-test) or [Component Testing](/app/component-testing/get-started).
+
+## System requirements
+
+### Operating System
+
+Cypress supports running under these operating systems:
+
+- **macOS** >=13.5 _(Intel or Apple Silicon 64-bit (x64 or arm64))_
+- **Linux** _(x64 or arm64)_ see also [Linux Prerequisites](#Linux-Prerequisites) down below
+  - Ubuntu >=22.04
+  - Debian >=11
+  - Fedora >=43
+- **Windows** 10 & 11 _(x64)_
+- **Windows** 11 25H2 _(arm64, runs in [x64 emulation](https://learn.microsoft.com/en-us/windows/arm/apps-on-arm-x86-emulation) mode, minimum Cypress [14.5.0](/app/references/changelog#14-5-0) required)_ - preview status
+- **Windows Server** 2019, 2022 and 2025 _(x64)_
+
+### Node.js
+
+- **Node.js** 20.x, 22.x, >=24.x
+
+Follow the instructions on [Download Node.js](https://nodejs.org/en/download/) to download and install [Node.js](https://nodejs.org/).
+
+:::caution
+
+Note that the [Node.js Snap for Linux](https://github.com/nodejs/snap) version manager is not recommended for use with Cypress.
+Attempting to use it as a non-root user may result in permissions errors.
+
+:::
+
+If you're using a [Cypress Docker image](../continuous-integration/overview#Cypress-Docker-variants), you'll find a fixed version of Node.js is pre-installed in the image. You select the Node.js version using the Docker image tag.
+
+### Package Manager
+
+Cypress is installed using one of the following supported package managers:
+
+| Manager                                          | Version   | Docs                                                                             |
+| ------------------------------------------------ | --------- | -------------------------------------------------------------------------------- |
+| [npm](https://docs.npmjs.com/)                   | >=10.1.0  | [Install npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) |
+| [Yarn 1 (Classic)](https://classic.yarnpkg.com/) | >=1.22.22 | [Install Yarn Classic](https://classic.yarnpkg.com/en/docs/install)              |
+| [Yarn (Modern aka berry)](https://yarnpkg.com/)  | >=4.x     | [Install Yarn Modern](https://yarnpkg.com/getting-started/install)               |
+| [pnpm](https://pnpm.io/)                         | >=8.x     | [Install pnpm](https://pnpm.io/installation)                                     |
+
+#### Yarn users
+
+[Yarn (Modern)](https://yarnpkg.com/) configuration using [nodeLinker: "node-modules"](https://yarnpkg.com/configuration/yarnrc#nodeLinker)
+is preferred. Cypress [Component Testing](/app/core-concepts/testing-types#What-is-Component-Testing) is not currently compatible with the default setting [nodeLinker: "pnp"](https://yarnpkg.com/configuration/yarnrc#nodeLinker) which uses [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp).
+
+#### pnpm configuration
+
+The following configuration options enable Cypress to execute its `postinstall` script so it can install the Cypress binary into the [binary cache](/app/references/advanced-installation#Binary-cache).
+If these configuration options are not set, then Cypress may skip the `postinstall` script execution and Cypress will not run.
+
+## System requirements (part 2)
+
+The pnpm [side effects cache](https://pnpm.io/settings#sideeffectscache) uses and caches the results of (pre/post)install hooks and is not compatible with Cypress' own caching.
+Disable the pnpm [side effects cache](https://pnpm.io/settings#sideeffectscache), for example using the following command, executed in the root of your Cypress project:
+
+```shell
+pnpm config set side-effects-cache false --location project
+```
+
+[pnpm@10.0.0](https://github.com/pnpm/pnpm/releases/tag/v10.0.0) and above require allowlisting `cypress`.
+Refer to the [pnpm settings](https://pnpm.io/settings) documentation for additional information.
+In [pnpm@10.4.0](https://github.com/pnpm/pnpm/releases/tag/v10.4.0) and above, the CLI `add` option [--allow-build](https://pnpm.io/cli/add#--allow-build) can be used, for example:
+
+```shell
+pnpm --allow-build=cypress add --save-dev cypress
+```
+
+### Browsers
+
+Each Cypress release includes the Electron-bundled Chromium [browser](/app/references/launching-browsers#Electron-Browser).
+
+The latest 3 major versions of the following browsers are also supported:
+
+- [Google Chrome](/app/references/launching-browsers#Chrome-Browsers)
+- [Microsoft Edge](/app/references/launching-browsers#Edge-Browsers)
+- [Mozilla Firefox](/app/references/launching-browsers#Firefox-Browsers) (_Firefox >=[141.0](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Releases/141) requires Cypress >=[14.1.0](https://docs.cypress.io/app/references/changelog#14-1-0)_)
+- [WebKit](https://docs.cypress.io/app/references/launching-browsers#WebKit-Experimental) support is experimental
+
+### Hardware
+
+- Local: Any modern dev machine works
+- CI: At least 2 CPUs + 4 GB RAM (8 GB+ recommended for long runs or video recording)
+
+Some issues you might run into in CI that could be a sign of insufficient resources are:
+
+- Exiting early during `cypress run` or abruptly closing ("crashing")
+- Frozen or missing frames in the video
+- Increased runtime
+
+### Linux Prerequisites
+
+Install required dependencies. See below under [Docker Prerequisites](#Docker-Prerequisites) for information on [Cypress Docker images](https://github.com/cypress-io/cypress-docker-images). These already include the necessary dependencies.
+
+#### Ubuntu/Debian
+
+For Ubuntu 22.04 and Debian:
+
+```shell
+apt-get install libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+```
+
+For Ubuntu >=24.04 and optionally for Debian 13:
+
+```shell
+apt-get install libgtk-3-0t64 libgbm-dev libnotify-dev libnss3 libxss1 libasound2t64 libxtst6 xauth xvfb
+```
+
+#### Arch
+
+```shell
+pacman -S gtk3 alsa-lib xorg-server-xvfb libxss nss libnotify
+```
+
+#### Amazon Linux 2023
+
+```shell
+dnf install -y xorg-x11-server-Xvfb gtk3-devel nss alsa-lib
+```
+
+### Docker Prerequisites
+
+[Cypress Docker images](../continuous-integration/overview#Cypress-Docker-variants) are available from
+[Docker Hub](https://hub.docker.com/u/cypress) and the
+[Amazon ECR (Elastic Container Registry) Public Gallery](https://gallery.ecr.aws/cypress-io).
+These images, which are Linux (Debian) based, include all of the required dependencies pre-installed.
+
+## System requirements (part 3)
+
+If you need Node.js, browser or Cypress version combinations which are not covered by the published Cypress Docker images,
+then the [cypress/factory](https://github.com/cypress-io/cypress-docker-images/tree/master/factory) image
+allows you to generate your own customized Docker image easily.
+
+If you are not using a Cypress Docker image, make sure that your base operating system is a Linux system listed in the supported
+[Operating Systems](#Operating-System) above and that Node.js is installed in the image.
+It is recommended to have `unzip` installed. This avoids the Cypress binary installation falling back to a slower unzip method using Node.js.
+
+##  Advanced Installation
+
+If you have more complex requirements, want to level-up your Cypress workflow or
+just need help with troubleshooting, check out our
+[Advanced Installation](/app/references/advanced-installation) reference.
+You can also find instructions to [uninstall Cypress](/app/references/advanced-installation#Uninstall-Cypress) in this reference documentation.
+
+##  Continuous integration
+
+Please read our
+[Continuous Integration](/app/continuous-integration/overview) docs for
+help installing Cypress in CI. When running in Linux you may need to install some
+[system dependencies](#Linux-Prerequisites)
+or you can use our [Docker images](#Docker-Prerequisites) which have everything you
+need prebuilt.
+

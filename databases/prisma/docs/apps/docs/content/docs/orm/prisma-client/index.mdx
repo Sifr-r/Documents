@@ -1,0 +1,48 @@
+# Prisma Client
+
+## Introduction
+
+Prisma Client is Prisma ORM's generated query builder. It is tailored to your schema, fully typed, and designed to make common database work feel like ordinary application code.
+
+## What Prisma Client gives you
+
+- Typed query methods based on your models
+- Autocomplete for filters, relations, ordering, and nested writes
+- Predictable plain JavaScript objects as query results
+- A single client API that works across PostgreSQL, MySQL, SQLite, MongoDB, and more
+
+## Quick start
+
+### 1. Define a generator in your schema
+
+```prisma title="schema.prisma"
+generator client {
+  provider = "prisma-client"
+  output   = "./generated"
+}
+```
+
+### 2. Install Prisma Client
+
+```npm
+npm install @prisma/client
+```
+
+### 3. Generate the client
+
+```npm
+npx prisma generate
+```
+
+If you want more detail on this step, see [Generating Prisma Client](/orm/prisma-client/setup-and-configuration/generating-prisma-client).
+
+### 4. Import and use the generated client
+
+```ts
+import { PrismaClient } from "./generated/client";
+
+const prisma = new PrismaClient();
+
+const users = await prisma.user.findMany();
+```
+

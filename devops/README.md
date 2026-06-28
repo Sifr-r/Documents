@@ -23,6 +23,13 @@ Reference documentation for DevOps tools, CI/CD, infrastructure, and API technol
 | Nginx | Web server and reverse proxy | [nginx/](nginx/) |
 | GraphQL | Query language for APIs | [graphql/](graphql/) |
 
+## AI Grounding & Context
+
+| Tool | Description | Directory |
+|---|---|---|
+| Context | Local-first documentation server | [context/](context/) |
+| Graph | Semantic data layer for AI agents | [graph/](graph/) |
+
 ## Quick Reference
 
 ```yaml

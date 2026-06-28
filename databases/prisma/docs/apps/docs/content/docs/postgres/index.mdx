@@ -1,0 +1,82 @@
+# Prisma Postgres
+
+## Introduction
+
+[Prisma Postgres](https://www.prisma.io/postgres?utm_source=docs) is a managed PostgreSQL database with built-in connection pooling, query caching, and edge runtime support.
+Use this page to choose a connection path and get started quickly.
+
+## What's included
+
+Everything below is included with every Prisma Postgres database. No extra services to configure.
+
+- **Connection pooling** — A dedicated PgBouncer instance runs alongside your database. You don't need to set one up or manage it. Works automatically for serverless and edge deployments. See [Connection pooling](/postgres/database/connection-pooling).
+- **Query caching** — Add a `cacheStrategy` to any Prisma ORM query to cache results at the edge, using TTL or stale-while-revalidate. See [Caching](/accelerate/caching).
+- **Edge and serverless support** — Connect from Cloudflare Workers, Vercel Edge Functions, and other edge runtimes via the [serverless driver](/postgres/database/serverless-driver), which uses HTTP instead of TCP.
+- **Automated backups** — Daily backups with point-in-time recovery. See [Backups](/postgres/database/backups).
+
+## Getting started
+
+### Create a database
+
+New to Prisma Postgres? Start here.
+
+  <Card href="/postgres/npx-create-db" title="Create a temporary database with create-db">
+    Create a temporary Prisma Postgres database in one command.
+  
+  <Card href="/prisma-orm/quickstart/prisma-postgres" title="Prisma Postgres quickstart with Prisma ORM">
+    Set up Prisma ORM and connect it to Prisma Postgres.
+  
+
+### Get your connection string
+
+In [Prisma Console](https://console.prisma.io), open your database and click **Connect to your database** to copy connection URLs.
+
+## Choose a connection type
+
+### Prisma ORM (recommended default)
+
+Use Prisma ORM for migrations and type-safe queries.
+
+  <Card href="/prisma-orm/quickstart/prisma-postgres" title="Prisma Postgres quickstart">
+    Get started with the recommended Prisma ORM workflow.
+  
+
+### Any PostgreSQL client or ORM
+
+Use Prisma Postgres with `psql`, GUI tools, `node-postgres`, or other ORMs.
+
+  <Card href="/prisma-postgres/quickstart/kysely" title="Kysely quickstart">
+    Connect Prisma Postgres from Kysely.
+  
+  <Card href="/prisma-postgres/quickstart/drizzle-orm" title="Drizzle ORM quickstart">
+    Connect Prisma Postgres from Drizzle ORM.
+  
+  <Card href="/prisma-postgres/quickstart/typeorm" title="TypeORM quickstart">
+    Connect Prisma Postgres from TypeORM.
+  
+  <Card href="/postgres/database/connecting-to-your-database" title="Connecting to your database">
+    Choose the right connection string for Prisma ORM, PostgreSQL tools, and serverless runtimes.
+  
+
+### Serverless and edge runtimes
+
+Use the serverless driver for HTTP/WebSocket connectivity in edge or constrained runtimes.
+
+- [Serverless driver (`@prisma/ppg`)](/postgres/database/serverless-driver)
+
+### Local development
+
+Run Prisma Postgres locally with `prisma dev`, then switch to cloud when ready.
+
+- [Local development](/postgres/database/local-development)
+
+## Technical details
+
+Prisma Postgres is based on **PostgreSQL v17** and uses a unikernel-based architecture.
+
+Learn more: [Prisma Postgres: Building a modern PostgreSQL service](https://pris.ly/ppg-early-access?utm_source=docs).
+
+:::info[Note]
+Postgres, PostgreSQL, and the Slonik Logo are trademarks or registered trademarks of the PostgreSQL Community Association of Canada and are used with permission.
+:::
+

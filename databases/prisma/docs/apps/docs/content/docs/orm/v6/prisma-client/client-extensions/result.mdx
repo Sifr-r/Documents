@@ -1,0 +1,100 @@
+# `result`: Add custom fields and methods to query results
+
+## Introduction
+
+:::info
+
+Prisma Client extensions are Generally Available from versions 4.16.0 and later. They were introduced in Preview in version 4.7.0. Make sure you enable the `clientExtensions` Preview feature flag if you are running on a version earlier than 4.16.0.
+
+:::
+
+You can use the `result` [Prisma Client extensions](/orm/v6/prisma-client/client-extensions) component type to add custom fields and methods to query results.
+
+Use the `$extends` [client-level method](/orm/v6/reference/prisma-client-reference#client-methods) to create an _extended client_. An extended client is a variant of the standard Prisma Client that is wrapped by one or more extensions.
+
+To add a custom [field](#add-a-custom-field-to-query-results) or [method](#add-a-custom-method-to-the-result-object) to query results, use the following structure. In this example, we add the custom field `myComputedField` to the result of a `user` model query.
+
+```ts
+const prisma = new PrismaClient().$extends({
+  name?: 'name',
+  result?: {
+    user: {                   // in this case, we extend the `user` model
+      myComputedField: {      // the name of the new computed field
+        needs: { ... },
+        compute() { ... }
+      },
+    },
+  },
+});
+```
+
+The parameters are as follows:
+
+- `name`: (optional) specifies a name for the extension that appears in error logs.
+- `result`: defines new fields and methods to the query results.
+- `needs`: an object which describes the dependencies of the result field.
+- `compute`: a method that defines how the virtual field is computed when it is accessed.
+
+## Using omit query option with result extension component
+
+You can use the [`omit` (Preview) option](/orm/v6/reference/prisma-client-reference#omit) with [custom fields](#add-a-custom-field-to-query-results) and fields needed by custom fields.
+
+### `omit` fields needed by custom fields from query result
+
+If you `omit` a field that is a dependency of a custom field, it will still be read from the database even though it will not be included in the query result.
+
+The following example omits the `password` field, which is a dependency of the custom field `sanitizedPassword`:
+
+```ts
+const xprisma = prisma.$extends({
+  result: {
+    user: {
+      sanitizedPassword: {
+        needs: { password: true },
+        compute(user) {
+          return sanitize(user.password);
+        },
+      },
+    },
+  },
+});
+
+const user = await xprisma.user.findFirstOrThrow({
+  omit: {
+    password: true,
+  },
+});
+```
+
+In this case, although `password` is omitted from the result, it will still be queried from the database because it is a dependency of the `sanitizedPassword` custom field.
+
+### `omit` custom field and dependencies from query result
+
+To ensure omitted fields are not queried from the database at all, you must omit both the custom field and its dependencies.
+
+The following example omits both the custom field `sanitizedPassword` and the dependent `password` field:
+
+```ts
+const xprisma = prisma.$extends({
+  result: {
+    user: {
+      sanitizedPassword: {
+        needs: { password: true },
+        compute(user) {
+          return sanitize(user.password);
+        },
+      },
+    },
+  },
+});
+
+const user = await xprisma.user.findFirstOrThrow({
+  omit: {
+    sanitizedPassword: true,
+    password: true,
+  },
+});
+```
+
+In this case, omitting both `password` and `sanitizedPassword` will exclude both from the result as well as prevent the `password` field from being read from the database.
+

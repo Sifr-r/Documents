@@ -1,0 +1,22 @@
+# Expected image options.
+
+## Introduction
+
+> **ExpectedImageOptions**: Expected `getImage()` parameter to be an object. Received `OPTIONS`.
+
+## What went wrong?
+
+`getImage()`'s first parameter should be an object with the different properties to apply to your image.
+
+```ts
+import { getImage } from "astro:assets";
+import myImage from "../assets/my_image.png";
+
+const optimizedImage = await getImage({src: myImage, width: 300, height: 300});
+```
+
+In most cases, this error happens because parameters were passed directly instead of inside an object.
+
+**See Also:**
+-  [Images](/en/guides/images/)
+

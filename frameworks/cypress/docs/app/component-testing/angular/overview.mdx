@@ -1,0 +1,134 @@
+# Angular Component Testing
+
+## Introduction
+
+<ProductHeading product="app" />
+
+# Angular Component Testing
+
+:::info
+
+##### <Icon name="question-circle" color="#4BBFD2" /> What you'll learn
+
+- How to set up component tests in Angular
+- How to configure Cypress for Angular projects
+
+:::
+
+## Framework Support
+
+Cypress Component Testing supports Angular `^18.0.0`, `^19.0.0`, `^20.0.0`, and `^21.0.0`.
+
+:::info
+
+Our testing harness, `cypress/angular`, still requires `zone.js` and `@angular-devkit/build-angular` to be installed in your project, even if your project is zoneless or is built with `@angular/build`.
+If you wish to use the zoneless configuration, which is the default in Angular 21, you can use `cypress/angular-zoneless` testing harness instead as of Cypress `15.8.0`.
+:::
+
+## Tutorial
+
+Visit the
+[Getting Started Guide](/app/component-testing/get-started) for a
+step-by-step tutorial on adding component testing to any project and how to write your first tests.
+
+## Installation
+
+To get up and running with Cypress Component Testing in Angular, install Cypress
+into your project:
+
+Open Cypress:
+
+<DocsImage
+  src="/img/app/component-testing/select-test-type.jpg"
+  caption="Choose Component Testing"
+/>
+
+The Cypress App will guide you through configuring your project.
+
+:::info
+
+For a step-by-step guide on how to create a component test, refer to the
+[Getting Started](/app/component-testing/get-started) guide.
+
+For usage and examples, visit the
+[Angular Examples](/app/component-testing/angular/examples) guide.
+
+:::
+
+## Framework Configuration
+
+Cypress Component Testing works out of the box with `@angular/cli` projects.
+Cypress will automatically detect your project is Angular during setup and
+configure it properly.
+
+For a full explanation of how the dev server and bundler work — including
+automatic config detection and override options — see
+[Component Testing Configuration — Dev Server and Bundler](/app/component-testing/component-framework-configuration#Dev-Server-and-Bundler).
+
+The examples below are for quick reference.
+
+### Angular CLI Configuration
+
+:::cypress-config-example
+
+```ts
+{
+  component: {
+    devServer: {
+      framework: 'angular',
+      bundler: 'webpack',
+    },
+    specPattern: '**/*.cy.ts',
+  },
+}
+```
+
+:::
+
+#### Options API
+
+You can also use the `options` API to provide your own project specific
+configuration to your `devServer`. The `devServer` configuration receives an
+`options` property:
+
+```ts title=cypress.config.ts
+import { defineConfig } from 'cypress'
+
+export default {
+  component: {
+    devServer: {
+      framework: 'angular',
+      bundler: 'webpack',
+      options: {
+        projectConfig: {
+          root: '',
+          sourceRoot: 'apps/my-app',
+          buildOptions: {
+            outputPath: 'dist/my-app',
+            index: 'apps/my-app/src/index.html',
+            main: 'apps/my-app/src/main.ts',
+            polyfills: 'apps/my-app/src/polyfills.ts',
+            tsConfig: 'apps/my-app/tsconfig.app.json',
+            inlineStyleLanguage: 'scss',
+            assets: ['apps/my-app/src/favicon.ico', 'apps/my-app/src/assets'],
+            styles: ['apps/my-app/src/styles.scss'],
+            scripts: [],
+            buildOptimizer: false,
+            optimization: false,
+            vendorChunk: true,
+            extractLicenses: false,
+            sourceMap: true,
+            namedChunks: true,
+          },
+        },
+      },
+    },
+  },
+}
+```
+
+#### Sample Angular Apps
+
+- [Angular 20 Standalone](https://github.com/cypress-io/cypress-component-testing-apps/tree/main/angular-standalone)
+- [Angular 21 Zoneless](https://github.com/cypress-io/cypress-component-testing-apps/tree/main/angular-zoneless)
+

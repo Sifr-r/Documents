@@ -1,0 +1,89 @@
+# end | Cypress Documentation
+
+## Introduction
+
+<ProductHeading product="app" />
+
+:::caution
+
+<strong>Deprecated</strong>
+
+`.end()` was deprecated in Cypress `15.15.0` and will be removed in a future
+major version.
+
+Instead of using `.end()` to break a chain, start a new chain of commands off
+of `cy`:
+
+<Badge type="danger">Before
+
+```javascript
+cy.get('#user-cheryl').click().end().get('#user-charles').click()
+```
+
+<Badge type="success">After
+
+```javascript
+cy.get('#user-cheryl').click()
+cy.get('#user-charles').click()
+```
+
+:::
+
+# end
+
+End a chain of commands.
+
+## Syntax
+
+```javascript
+.end()
+```
+
+### Usage
+
+<Icon name="check-circle" color="green" /> **Correct Usage**
+
+```javascript
+cy.get('ul').end() // Yield 'null' instead of 'ul' element
+```
+
+<Icon name="exclamation-triangle" color="red" /> **Incorrect Usage**
+
+```javascript
+cy.end()
+```
+
+- `.end()` yields `null`.
+
+## Examples
+
+`.end()` is useful when you want to end a chain of commands and force the next
+command to not receive what was yielded in the previous command.
+
+```javascript
+cy.get('#user-cheryl')
+  .click()
+  .end() // yield null
+  .get('#user-charles')
+  .click() // get looks for the element in the document now
+```
+
+Alternatively, you can always start a new chain of commands off of `cy`.
+
+```javascript
+cy.get('#user-cheryl').click()
+cy.get('#user-charles').click() // get looks for the element in the document now
+```
+
+## Rules
+
+- `.end()` requires being chained off a previous command.
+
+- `.end()` cannot have any assertions chained.
+
+- `.end()` cannot time out.
+
+## Command Log
+
+- `.end()` does _not_ log in the Command Log
+

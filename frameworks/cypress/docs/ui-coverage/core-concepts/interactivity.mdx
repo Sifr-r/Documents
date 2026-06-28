@@ -1,0 +1,76 @@
+# Testing interactive elements | Cypress UI Coverage
+
+## Introduction
+
+<ProductHeading product="ui-coverage" />
+
+# Interactivity
+
+## Interactive Elements
+
+UI Coverage determines interactivity based on a combination of HTML semantics, [WHATWG standards](https://html.spec.whatwg.org/dev/dom.html#interactive-content), and Cypress-specific rules. Interactive elements included in UI Coverage are:
+
+- **Implicit interactive roles**: Elements with a tag of `a`, `button`, `input`, `select`, `textarea`, etc.
+- **Explicit interactive roles**: Elements with a `role` attribute set to values like `button`, `checkbox`, `radio`, `tab`, `textbox`, etc.
+- **Tab-navigable elements**: Elements with a `tabindex` attribute set to `>= 0`.
+
+These elements are tracked for interaction to provide actionable insights into test coverage.
+
+### Customizing interactive elements
+
+Custom interactive elements that do not meet the criteria above can also be declared with a `data-cy-ui-interactive="include"` attribute, used as follows:
+
+```html
+<div data-cy-ui-interactive="include">Custom interactive widget</div>
+```
+
+It most cases we recommend **not** using this override, and instead updating the HTML to be something the browser would already consider to be interactive. This will likely produce better overall behavior, including for accessibility purposes. `data-cy-ui-interactive` is a fallback for situations where that may not be possible.
+
+## Interaction Commands
+
+Interactive elements are marked as "tested" when they are interacted with using specific Cypress commands. These include:
+
+- `blur`
+- `check`
+- `clear`
+- `click`
+- `dblclick`
+- `focus`
+- `rightclick`
+- `scrollIntoView`
+- `scrollTo`
+- `select`
+- `selectFile`
+- `submit`
+- `trigger`
+- `type`
+- `uncheck`
+
+By ensuring that at least one of these commands is used on every interactive element, UI Coverage accurately reflects your test coverage.
+
+### Customizing interaction commands
+
+Configuration is available to support adding [additional interaction commands](/ui-coverage/configuration/additionalinteractioncommands), such as custom commands or ones from third-party libraries, to count towards UI Coverage scores.
+
+It is also possible to adjust the [allowed commands](/ui-coverage/configuration/allowedinteractioncommands) for specific elements, to restrict or expand the commands that are accepted as coverage for specific elements.
+
+## Untested Links
+
+UI Coverage tracks `<a>` elements (links) that are not visited during testing. For each untested link, detailed information is available:
+
+### Referrers
+
+The **Referrers** section identifies views that contain links to the untested destination, helping you:
+
+- Pinpoint untested areas referenced from these links.
+- Understand navigation paths leading to untested sections.
+- Gain context on where these links appear within your application.
+
+### URLs
+
+The **URLs** section groups similar patterns for dynamic routing. For instance, links to `/users/1`, `/users/2`, and `/users/3` are grouped as /users/\*. This grouping aids in:
+
+- Understanding the scope of dynamic routes in your application
+- Viewing the count and variations of a URL pattern.
+- Writing configuration rules to handle these patterns effectively.
+

@@ -1,0 +1,115 @@
+# MySQL
+
+## Introduction
+
+[MySQL](https://www.mysql.com/) is a widely-used open-source relational database management system known for its speed, reliability, and ease of use. In this guide, you will learn how to add Prisma ORM to an existing TypeScript project, connect it to MySQL, introspect your existing database schema, and start querying with type-safe Prisma Client.
+
+## 1. Set up Prisma ORM
+
+Navigate to your existing project directory and install the required dependencies:
+
+```npm
+npm install prisma @types/node --save-dev
+npm install @prisma/client @prisma/adapter-mariadb dotenv
+```
+
+Here's what each package does:
+
+- **`prisma`** - The Prisma CLI for running commands like `prisma init`, `prisma db pull`, and `prisma generate`
+- **`@prisma/client`** - The Prisma Client library for querying your database
+- **`@prisma/adapter-mariadb`** - The MySQL/MariaDB driver adapter that connects Prisma Client to your database
+- **`dotenv`** - Loads environment variables from your `.env` file
+
+## 2. Initialize Prisma ORM
+
+Set up your Prisma ORM project by creating your [Prisma Schema](/orm/prisma-schema/overview) file with the following command:
+
+```npm
+npx prisma init --datasource-provider mysql --output ../generated/prisma
+```
+
+This command does a few things:
+
+- Creates a `prisma/` directory with a `schema.prisma` file containing your database connection configuration
+- Creates a `.env` file in the root directory for environment variables
+- Creates a `prisma.config.ts` file for Prisma configuration
+
+The generated `prisma.config.ts` file looks like this:
+
+```typescript title="prisma.config.ts"
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  datasource: {
+    url: env("DATABASE_URL"),
+  },
+});
+```
+
+The generated schema uses [the ESM-first `prisma-client` generator](/orm/prisma-schema/overview/generators#prisma-client) with a custom output path:
+
+```prisma title="prisma/schema.prisma"
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+```
+
+## 3. Connect your database
+
+Update the `.env` file with your MySQL connection string details:
+
+```bash title=".env"
+DATABASE_URL="mysql://username:password@localhost:3306/mydb"
+DATABASE_USER="username" # [!code ++]
+DATABASE_PASSWORD="password" # [!code ++]
+DATABASE_NAME="mydb" # [!code ++]
+DATABASE_HOST="localhost" # [!code ++]
+DATABASE_PORT=3306 # [!code ++]
+```
+
+Replace the placeholders with your actual database credentials:
+
+- `username`: Your MySQL username
+- `password`: Your MySQL password
+- `localhost:3306`: Your MySQL host and port
+- `mydb`: Your database name
+
+## 7. Instantiate Prisma Client
+
+Create a utility file to instantiate Prisma Client. You need to pass an instance of the Prisma ORM driver adapter adapter to the `PrismaClient` constructor:
+
+```typescript title="lib/prisma.ts"
+import "dotenv/config";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PrismaClient } from "../generated/prisma/client";
+
+const adapter = new PrismaMariaDb({
+  host: process.env.DATABASE_HOST,
+  user: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
+  database: process.env.DATABASE_NAME,
+  connectionLimit: 5,
+});
+const prisma = new PrismaClient({ adapter });
+
+export { prisma };
+```
+
+## 10. Explore your data with Prisma Studio
+
+Prisma Studio is a visual editor for your database. Launch it with:
+
+```shell
+npx prisma studio
+```
+

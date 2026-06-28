@@ -1,0 +1,23 @@
+# Invalid value returned by getStaticPaths().
+
+## Introduction
+
+> **InvalidGetStaticPathsReturn**: Invalid type returned by `getStaticPaths()`. Expected an `array`, got `RETURN_TYPE`.
+
+## What went wrong?
+
+`getStaticPaths()`'s return value must be an array of objects.
+
+```ts title="pages/blog/[id].astro"
+export async function getStaticPaths() {
+	return [ // <-- Array
+		{ params: { id: "blog" } },
+		{ params: { id: "about" } }
+	];
+}
+```
+
+**See Also:**
+-  [`getStaticPaths()`](/en/reference/routing-reference/#getstaticpaths)
+-  [`params`](/en/reference/api-reference/#params)
+

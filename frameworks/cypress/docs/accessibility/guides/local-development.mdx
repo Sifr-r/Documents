@@ -1,0 +1,54 @@
+# Feedback during local development | Cypress Accessibility Documentation
+
+## Introduction
+
+<ProductHeading product="accessibility" />
+
+# Feedback during local development
+
+For reliable accessibility feedback during local development, the best approach is recording your tests directly to Cypress Cloud. By running tests related to your changes locally, you can bypass build pipelines and CI processes entirely. This can be achieved with a single command:
+
+  <TabItem value="npm">
+
+```shell
+npx cypress run --key <record_key> --record --spec "cypress/e2e/my-spec.cy.js"
+```
+
+  
+  <TabItem value="yarn">
+
+```shell
+yarn cypress run --key <record_key> --record --spec "cypress/e2e/my-spec.cy.js"
+```
+
+  
+  <TabItem value="pnpm">
+
+```shell
+pnpm cypress run --key <record_key> --record --spec "cypress/e2e/my-spec.cy.js"
+```
+
+  
+
+(You can skip the `--key` option by setting `CYPRESS_RECORD_KEY` as an environment variable. Learn more about recording in our [Recorded Runs documentation](/cloud/features/recorded-runs)).
+
+## Key benefits
+
+- **Accuracy:** See how Cypress processes your new code changes, taking into account your project's configuration, and using the Cloud's version of Axe Core®. There will be no violation reports for rules, pages, or elements your team has chosen to ignore, for example.
+- **Speed:** With the application already built locally, tests can run immediately without requiring your build pipeline.
+- **Scope:** Execute only the tests you need to focus on your changes, ensuring faster results and excluding unrelated issues.
+
+Recording tests locally offers early feedback, helping you quickly detect if resolving one accessibility issue introduces another. This targeted testing workflow can significantly enhance development efficiency and quality.
+
+## Organizing Local Runs
+
+If your team frequently records local runs and you're concerned about cluttering your Cypress Cloud project, consider setting up a dedicated Cloud project for "local runs". This keeps your main project organized while supporting local testing workflows.
+
+## Querying local run results with Cloud MCP
+
+If you have [Cloud MCP](/cloud/integrations/cloud-mcp) configured, you can ask your AI agent to summarize the accessibility results from your local run without switching to the browser:
+
+> "Pull the accessibility report from Cypress Cloud for my latest local run and summarize any critical or serious violations."
+
+This keeps the feedback loop inside your editor while you're actively making changes.
+

@@ -1,0 +1,20 @@
+# Content collection frontmatter invalid.
+
+## Introduction
+
+:::caution[Deprecated]
+This error is from an older version of Astro and is no longer in use. If you are unable to upgrade your project to a more recent version, then you can consult [unmaintained snapshots of older documentation](/en/upgrade-astro/#older-docs-unmaintained) for assistance.
+:::
+
+> **Example error message:**<br/>
+Could not parse frontmatter in **blog** → **post.md**<br/>
+"title" is required.<br/>
+"date" must be a valid date.
+
+## What went wrong?
+
+A Markdown document's frontmatter in `src/content/` does not match its collection schema.
+Make sure that all required fields are present, and that all fields are of the correct type.
+You can check against the collection schema in your `src/content/config.*` file.
+See the [Content collections documentation](/en/guides/content-collections/) for more information.
+

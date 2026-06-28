@@ -1,0 +1,22 @@
+# Invalid entry inside getStaticPaths()'s return value.
+
+## Introduction
+
+> **InvalidGetStaticPathsEntry**: Invalid entry returned by `getStaticPaths()`. Expected an object, got `ENTRY_TYPE`.
+
+## What went wrong?
+
+`getStaticPaths()`'s return value must be an array of objects. In most cases, this error happens because an array of arrays was returned. Using [`.flatMap()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap) or a [`.flat()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat) call may be useful.
+
+```ts title="pages/blog/[id].astro"
+export async function getStaticPaths() {
+	return [ // <-- Array
+		{ params: { id: "blog" } }, // <-- Object
+		{ params: { id: "about" } }
+	];
+}
+```
+
+**See Also:**
+-  [`getStaticPaths()`](/en/reference/routing-reference/#getstaticpaths)
+

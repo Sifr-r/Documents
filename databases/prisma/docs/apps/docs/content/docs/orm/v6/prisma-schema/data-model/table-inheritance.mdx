@@ -1,0 +1,39 @@
+# Table inheritance
+
+## Single-table inheritance (STI) (part 2)
+
+You can use [Prisma Client extensions](/orm/v6/prisma-client/client-extensions) to create a more convenient API for the table structures in your database.
+
+## Multi-table inheritance (MTI) (part 2)
+
+// Create `VideoWithActivity` typings for the objects returned above
+const videoWithActivity = Prisma.validator<Prisma.VideoDefaultArgs>()({
+  include: { activity: true },
+});
+type VideoWithActivity = Prisma.VideoGetPayload<typeof videoWithActivity>;
+
+// Map to `Video` type
+function toVideo(a: VideoWithActivity): Video {
+  return {
+    id: a.id,
+    url: a.activity.url,
+    ownerId: a.activity.ownerId,
+    duration: a.duration,
+    activityId: a.activity.id,
+  };
+}
+```
+
+Now you can take the objects returned by the queries above and transform them using `toVideo`:
+
+```ts
+const videoWithActivities = await prisma.video.findMany({
+  include: { activity: true },
+});
+const videos: Video[] = videoWithActivities.map(toVideo);
+```
+
+#### Using Prisma Client extension for a more convenient API
+
+You can use [Prisma Client extensions](/orm/v6/prisma-client/client-extensions) to create a more convenient API for the table structures in your database.
+

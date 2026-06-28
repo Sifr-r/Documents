@@ -1,0 +1,28 @@
+# Unsupported database features (Prisma Migrate)
+
+## Customize a migration to include an unsupported feature
+
+To customize a migration to include an unsupported feature:
+
+1. Use the `--create-only` flag to generate a new migration without applying it:
+
+   ```npm
+   npx prisma migrate dev --create-only
+   ```
+
+1. Open the generated `migration.sql` file and add the unsupported feature - for example, a partial index:
+
+   ```sql
+   CREATE UNIQUE INDEX tests_success_constraint
+     ON posts (subject, target)
+     WHERE success;
+   ```
+
+1. Apply the migration:
+
+   ```npm
+   npx prisma migrate dev
+   ```
+
+1. Commit the modified migration to source control.
+

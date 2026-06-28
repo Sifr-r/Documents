@@ -1,0 +1,58 @@
+# Baselining a database
+
+## Introduction
+
+Baselining is the process of initializing a migration history for a database that:
+
+- ✔ Existed before you started using Prisma Migrate
+- ✔ Contains data that must be maintained (like production), which means that the database cannot be reset
+
+Baselining tells Prisma Migrate to assume that one or more migrations have **already been applied**. This prevents generated migrations from failing when they try to create tables and fields that already exist.
+
+> **Note**: We assume it is acceptable to reset and seed development databases.
+
+Baselining is part of [adding Prisma Migrate to a project with an existing database](/orm/v6/prisma-migrate/getting-started#adding-prisma-migrate-to-an-existing-project).
+
+:::warning
+
+This guide **does not apply for MongoDB**.<br />
+Instead of `migrate deploy`, [`db push`](/orm/v6/prisma-migrate/workflows/prototyping-your-schema) is used for [MongoDB](/orm/v6/overview/databases/mongodb).
+
+:::
+
+To create a baseline migration:
+
+1. If you have a `prisma/migrations` folder, delete, move, rename, or archive this folder.
+
+1. Run the following command to create a `migrations` directory inside with your preferred name. This example will use `0_init` for the migration name:
+
+   ```bash
+   mkdir -p prisma/migrations/0_init
+   ```
+
+   :::info
+
+   Then `0_` is important because Prisma Migrate applies migrations in a [lexicographic order](https://en.wikipedia.org/wiki/Lexicographic_order). You can use a different value such as the current timestamp.
+
+   :::
+
+1. Generate a migration and save it to a file using `prisma migrate diff`
+
+   ```bash no-lines
+   npx prisma migrate diff \
+   --from-empty \
+   --to-schema prisma/schema.prisma \
+   --script > prisma/migrations/0_init/migration.sql
+   ```
+
+1. Run the `prisma migrate resolve` command for each migration that should be ignored:
+
+   ```npm
+   npx prisma migrate resolve --applied 0_init
+   ```
+
+This command adds the target migration to the `_prisma_migrations` table and marks it as applied. When you run `prisma migrate deploy` to apply new migrations, Prisma Migrate:
+
+1. Skips all migrations marked as 'applied', including the baseline migration
+1. Applies any new migrations that come _after_ the baseline migration
+

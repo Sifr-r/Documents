@@ -1,0 +1,24 @@
+# Invalid type returned by Astro page.
+
+## Introduction
+
+> Route returned a `RETURNED_VALUE`. Only a Response can be returned from Astro files.
+
+## What went wrong?
+
+Only instances of [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) can be returned inside Astro files.
+```astro title="pages/login.astro"
+---
+return new Response(null, {
+ status: 404,
+ statusText: 'Not found'
+});
+
+// Alternatively, for redirects, `Astro.redirect()` also returns an instance of `Response`
+return Astro.redirect('/login');
+---
+```
+
+**See Also:**
+-  [Response](/en/guides/on-demand-rendering/#response)
+

@@ -1,0 +1,269 @@
+# Composite types
+
+## Default values for required fields on composite types
+
+From version 4.0.0, if you carry out a database read on a composite type when all of the following conditions are true, then Prisma Client inserts the default value into the result.
+
+Conditions:
+
+- A field on the composite type is [required](/orm/v6/prisma-schema/data-model/models#optional-and-mandatory-fields), and
+- this field has a [default value](/orm/v6/prisma-schema/data-model/models#defining-a-default-value), and
+- this field is not present in the returned document or documents.
+
+Note:
+
+- This is the same behavior as with [model fields](/orm/v6/reference/prisma-schema-reference#model-field-scalar-types).
+- On read operations, Prisma Client inserts the default value into the result, but does not insert the default value into the database.
+
+In our example schema, suppose that you add a required field to `photo`. This field, `bitDepth`, has a default value:
+
+```prisma title="schema.prisma" highlight=4;add
+...
+type Photo {
+  ...
+  bitDepth Int @default(8) // [!code ++]
+}
+
+...
+```
+
+Suppose that you then run `npx prisma db push` to [update your database](/orm/v6/reference/prisma-cli-reference#db-push) and regenerate your Prisma Client with `npx prisma generate`. Then, you run the following application code:
+
+```ts
+console.dir(await prisma.product.findMany({}), { depth: Infinity });
+```
+
+The `bitDepth` field has no content because you have only just added this field, so the query returns the default value of `8`.
+
+** Earlier versions **
+
+Before version 4.0.0, Prisma ORM threw a P2032 error as follows:
+
+```
+Error converting field "bitDepth" of expected non-nullable
+type "int", found incompatible value of "null".
+```
+
+## Changing composite types within update and updateMany
+
+:::info
+
+When you update a record with a composite type that has a unique constraint, note that MongoDB does not enforce unique values inside a record. [Learn more](#duplicate-values-in-unique-fields-of-composite-types).
+
+:::
+
+Composite types can be set, updated or removed within an `update` or `updateMany` method. The following section describes the operations available for updating a single type or multiple types at once, and gives examples of each.
+
+### Changing a single composite type
+
+Use the `set`, `unset` `update` and `upsert` operations to change a single composite type:
+
+- Use `set` to set a composite type, overriding any existing value
+- Use `unset` to unset a composite type. Unlike `set: null`, `unset` removes the field entirely
+- Use `update` to update a composite type
+- Use `upsert` to `update` an existing composite type if it exists, and otherwise `set` the composite type
+
+For example, use `update` to update a required `shippingAddress` with an `Address` composite type inside an `Order`:
+
+```ts
+const order = await prisma.order.update({
+  where: {
+    id: "some-object-id",
+  },
+  data: {
+    shippingAddress: {
+      // Update just the zip field
+      update: {
+        zip: "41232",
+      },
+    },
+  },
+});
+```
+
+For an optional embedded type, like the `billingAddress`, use `upsert` to create a new record if it does not exist, and update the record if it does:
+
+```ts
+const order = await prisma.order.update({
+  where: {
+    id: "some-object-id",
+  },
+  data: {
+    billingAddress: {
+      // Create the address if it doesn't exist,
+      // otherwise update it
+      upsert: {
+        set: {
+          street: "1084 Candycane Lane",
+          city: "Silverlake",
+          zip: "84323",
+        },
+        update: {
+          zip: "84323",
+        },
+      },
+    },
+  },
+});
+```
+
+You can also use the `unset` operation to remove an optional embedded type. The following example uses `unset` to remove the `billingAddress` from an `Order`:
+
+```ts
+const order = await prisma.order.update({
+  where: {
+    id: "some-object-id",
+  },
+  data: {
+    billingAddress: {
+      // Unset the billing address
+      // Removes "billingAddress" field from order
+      unset: true,
+    },
+  },
+});
+```
+
+You can use [filters](/orm/v6/prisma-client/special-fields-and-types/composite-types#finding-records-that-contain-composite-types-with-find-and-findmany) within `updateMany` to update all records that match a composite type. The following example uses the `is` filter to match the street name from a shipping address on a list of orders:
+
+```ts
+const orders = await prisma.order.updateMany({
+  where: {
+    shippingAddress: {
+      is: {
+        street: "555 Candy Cane Lane",
+      },
+    },
+  },
+  data: {
+    shippingAddress: {
+      update: {
+        street: "111 Candy Cane Drive",
+      },
+    },
+  },
+});
+```
+
+### Changing multiple composite types
+
+Use the `set`, `push`, `updateMany` and `deleteMany` operations to change a list of composite types:
+
+## Deleting records that contain composite types with delete and deleteMany
+
+To remove records which embed a composite type, use the `delete` or `deleteMany` methods. This will also remove the embedded composite type.
+
+For example, use `deleteMany` to delete all products with a `size` of `"Small"`. This will also delete any embedded `photos`.
+
+```ts
+const deleteProduct = await prisma.product.deleteMany({
+  where: {
+    sizes: {
+      equals: "Small",
+    },
+  },
+});
+```
+
+You can also use [filters](/orm/v6/prisma-client/special-fields-and-types/composite-types#finding-records-that-contain-composite-types-with-find-and-findmany) to delete records that match a composite type. The example below uses the `some` filter to delete products that contain a certain photo:
+
+```ts
+const product = await prisma.product.deleteMany({
+  where: {
+    photos: {
+      some: {
+        url: "2.jpg",
+      },
+    },
+  },
+});
+```
+
+## Duplicate values in unique fields of composite types
+
+Be careful when you carry out any of the following operations on a record with a composite type that has a unique constraint. In this situation, MongoDB does not enforce unique values inside a record.
+
+- When you create the record
+- When you add data to the record
+- When you update data in the record
+
+If your schema has a composite type with a `@@unique` constraint, MongoDB prevents you from storing the same value for the constrained value in two or more of the records that contain this composite type. However, MongoDB does does not prevent you from storing multiple copies of the same field value in a single record.
+
+Note that you can [use Prisma ORM relations to work around this issue](#use-prisma-orm-relations-to-enforce-unique-values-in-a-record).
+
+For example, in the following schema, `MailBox` has a composite type, `addresses`, which has a `@@unique` constraint on the `email` field.
+
+```prisma
+type Address {
+  email String
+}
+
+model MailBox {
+  name      String
+  addresses Address[]
+
+  @@unique([addresses.email])
+}
+```
+
+The following code creates a record with two identical values in `address`. MongoDB does not throw an error in this situation, and it stores `alice@prisma.io` in `addresses` twice.
+
+```ts
+await prisma.MailBox.createMany({
+  data: [
+    {
+      name: "Alice",
+      addresses: {
+        set: [
+          {
+            address: "alice@prisma.io", // Not unique
+          },
+          {
+            address: "alice@prisma.io", // Not unique
+          },
+        ],
+      },
+    },
+  ],
+});
+```
+
+Note: MongoDB throws an error if you try to store the same value in two separate records. In our example above, if you try to store the email address `alice@prisma.io` for the user Alice and for the user Bob, MongoDB does not store the data and throws an error.
+
+### Use Prisma ORM relations to enforce unique values in a record
+
+In the example above, MongoDB did not enforce the unique constraint on a nested address name. However, you can model your data differently to enforce unique values in a record. To do so, use Prisma ORM [relations](/orm/v6/prisma-schema/data-model/relations) to turn the composite type into a collection. Set a relationship to this collection and place a unique constraint on the field that you want to be unique.
+
+In the following example, MongoDB enforces unique values in a record. There is a relation between `Mailbox` and the `Address` model. Also, the `name` field in the `Address` model has a unique constraint.
+
+```prisma
+model Address {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  mailbox   Mailbox? @relation(fields: [mailboxId], references: [id])
+  mailboxId String?  @db.ObjectId
+
+  @@unique([name])
+}
+
+model Mailbox {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  addresses Address[] @relation
+}
+```
+
+```ts
+await prisma.MailBox.create({
+  data: {
+    name: "Alice",
+    addresses: {
+      create: [
+        { name: "alice@prisma.io" }, // Not unique
+        { name: "alice@prisma.io" }, // Not unique
+      ],
+    },
+  },
+});
+```
+

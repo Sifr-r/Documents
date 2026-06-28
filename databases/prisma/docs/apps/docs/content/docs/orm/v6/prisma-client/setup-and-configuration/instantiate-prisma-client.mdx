@@ -1,0 +1,22 @@
+# Instantiating Prisma Client
+
+## The number of PrismaClient instances matters
+
+Your application should generally only create **one instance** of `PrismaClient`. How to achieve this depends on whether you are using Prisma ORM in a [long-running application](/orm/v6/prisma-client/setup-and-configuration/databases-connections#prismaclient-in-long-running-applications) or in a [serverless environment](/orm/v6/prisma-client/setup-and-configuration/databases-connections#prismaclient-in-serverless-environments) .
+
+The reason for this is that each instance of `PrismaClient` manages a connection pool, which means that a large number of clients can **exhaust the database connection limit**. This applies to all database connectors.
+
+If you use the **MongoDB connector**, connections are managed by the MongoDB driver connection pool. If you use a **relational database connector**, connections are managed by Prisma ORM's [connection pool](/orm/v6/prisma-client/setup-and-configuration/databases-connections/connection-pool). Each instance of `PrismaClient` creates its own pool.
+
+1. Each client creates its own instance of the [query engine](/orm/v6/more/internals/engines).
+1. Each query engine creates a [connection pool](/orm/v6/prisma-client/setup-and-configuration/databases-connections/connection-pool) with a default pool size of:
+   - `num_physical_cpus * 2 + 1` for relational databases
+   - [`100` for MongoDB](https://www.mongodb.com/docs/manual/reference/connection-string-options/#mongodb-urioption-urioption.maxPoolSize)
+
+1. Too many connections may start to **slow down your database** and eventually lead to errors such as:
+
+   ```
+   Error in connector: Error querying the database: db error: FATAL: sorry, too many clients already
+       at PrismaClientFetcher.request
+   ```
+

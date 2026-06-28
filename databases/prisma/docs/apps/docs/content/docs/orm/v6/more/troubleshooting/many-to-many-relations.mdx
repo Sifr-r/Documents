@@ -1,0 +1,66 @@
+# Many-to-many relations
+
+## Implicit relations
+
+Implicit many-to-many relations let Prisma ORM handle the [relation table](/orm/v6/prisma-schema/data-model/relations/many-to-many-relations#relation-tables) internally:
+
+```prisma
+model Post {
+  id    Int    @id @default(autoincrement())
+  title String
+  tags  Tag[]
+}
+
+model Tag {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  posts Post[]
+}
+```
+
+### Creating records
+
+```ts
+await prisma.post.create({
+  data: {
+    title: "Types of relations",
+    tags: { create: [{ name: "dev" }, { name: "prisma" }] },
+  },
+});
+```
+
+### Querying with relations
+
+```ts
+await prisma.post.findMany({
+  include: { tags: true },
+});
+```
+
+Result:
+
+```json
+[
+  {
+    "id": 1,
+    "title": "Types of relations",
+    "tags": [
+      { "id": 1, "name": "dev" },
+      { "id": 2, "name": "prisma" }
+    ]
+  }
+]
+```
+
+### Connecting and creating tags simultaneously
+
+```ts
+await prisma.post.update({
+  where: { id: 1 },
+  data: {
+    title: "Prisma is awesome!",
+    tags: { set: [{ id: 1 }, { id: 2 }], create: { name: "typescript" } },
+  },
+});
+```
+

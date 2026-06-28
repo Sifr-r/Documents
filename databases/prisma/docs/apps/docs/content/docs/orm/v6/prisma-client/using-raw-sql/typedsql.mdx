@@ -1,0 +1,128 @@
+# TypedSQL
+
+## Getting started with TypedSQL
+
+To start using TypedSQL in your Prisma project, follow these steps:
+
+1. Ensure you have `@prisma/client` and `prisma` installed and updated to at least version `5.19.0`.
+
+   ```npm
+   npm install @prisma/client@latest
+   ```
+
+   ```npm
+   npm install -D prisma@latest
+   ```
+
+1. Add the `typedSql` preview feature flag to your `schema.prisma` file:
+
+   ```prisma
+   generator client {
+    provider = "prisma-client" // or "prisma-client-js"
+    previewFeatures = ["typedSql"]
+    output = "../src/generated/prisma"
+   }
+   ```
+
+   :::tip[Using driver adapters with TypedSQL]
+
+   If you are deploying Prisma in serverless or edge environments, you can use [driver adapters](/orm/v6/overview/databases/database-drivers#driver-adapters) to connect through JavaScript database drivers. Driver adapters are compatible with TypedSQL, with the exception of `@prisma/adapter-better-sqlite3`. For SQLite support, use [`@prisma/adapter-libsql`](https://www.npmjs.com/package/@prisma/adapter-libsql) instead. All other driver adapters are supported.
+
+   :::
+
+1. Create a `sql` directory inside your `prisma` directory. This is where you'll write your SQL queries.
+
+   ```bash
+   mkdir -p prisma/sql
+   ```
+
+   :::note[Custom SQL folder location]
+
+   Starting with Prisma 6.12.0, you can configure a custom location for your SQL files using the Prisma config file. Create a `prisma.config.ts` file in your project root and specify the `typedSql.path` option:
+
+   ```typescript title="prisma.config.ts"
+   import "dotenv/config";
+   import { defineConfig } from "prisma/config";
+
+   export default defineConfig({
+     schema: "./prisma/schema.prisma",
+     typedSql: {
+       path: "./prisma/sql",
+     },
+   });
+   ```
+
+   :::
+
+1. Create a new `.sql` file in your `prisma/sql` directory. For example, `getUsersWithPosts.sql`. Note that the file name must be a valid JS identifier and cannot start with a `$`.
+
+1. Write your SQL queries in your new `.sql` file. For example:
+
+   ```sql title="prisma/sql/getUsersWithPosts.sql"
+   SELECT u.id, u.name, COUNT(p.id) as "postCount"
+   FROM "User" u
+   LEFT JOIN "Post" p ON u.id = p."authorId"
+   GROUP BY u.id, u.name
+   ```
+
+1. Generate Prisma Client with the `sql` flag to ensure TypeScript functions and types for your SQL queries are created:
+
+   :::warning
+
+   Make sure that any pending migrations are applied before generating the client with the `sql` flag.
+
+   :::
+
+   ```bash
+   prisma generate --sql
+   ```
+
+   If you don't want to regenerate the client after every change, this command also works with the existing `--watch` flag:
+
+   ```bash
+   prisma generate --sql --watch
+   ```
+
+1. Now you can import and use your SQL queries in your TypeScript code:
+
+```typescript title="/src/index.ts"
+import { PrismaClient } from "./generated/prisma/client";
+import { getUsersWithPosts } from "./generated/prisma/sql";
+
+const prisma = new PrismaClient();
+
+const usersWithPostCounts = await prisma.$queryRawTyped(getUsersWithPosts());
+console.log(usersWithPostCounts);
+```
+
+:::note
+
+If you do not customize the generator `output`, you can import from `@prisma/client` and `@prisma/client/sql` instead.
+
+:::
+
+## Limitations of TypedSQL
+
+### Supported Databases
+
+TypedSQL supports modern versions of MySQL and PostgreSQL without any further configuration. For MySQL versions older than 8.0 and all SQLite versions, you will need to manually [describe argument types](#defining-argument-types-in-your-sql-files) in your SQL files. The types of inputs are inferred in all supported versions of PostgreSQL and MySQL 8.0 and later.
+
+TypedSQL does not work with MongoDB, as it is specifically designed for SQL databases.
+
+### Active Database Connection Required
+
+TypedSQL requires an active database connection to function properly. This means you need to have a running database instance that Prisma can connect to when generating the client with the `--sql` flag. TypedSQL uses the connection string defined in `prisma.config.ts` (`datasource.url`) to establish this connection.
+
+### Dynamic SQL Queries with Dynamic Columns
+
+TypedSQL does not natively support constructing SQL queries with dynamically added columns. When you need to create a query where the columns are determined at runtime, you must use the `$queryRawUnsafe` and `$executeRawUnsafe` methods. These methods allow for the execution of raw SQL, which can include dynamic column selections.
+
+**Example of a query using dynamic column selection:**
+
+```typescript
+const columns = "name, email, age"; // Columns determined at runtime
+const result = await prisma.$queryRawUnsafe(`SELECT ${columns} FROM Users WHERE active = true`);
+```
+
+In this example, the columns to be selected are defined dynamically and included in the SQL query. While this approach provides flexibility, it requires careful attention to security, particularly to [avoid SQL injection vulnerabilities](/orm/v6/prisma-client/using-raw-sql/raw-queries#sql-injection-prevention). Additionally, using raw SQL queries means foregoing the type-safety and DX of TypedSQL.
+

@@ -1,0 +1,87 @@
+# Prisma Postgres
+
+## Introduction
+
+[Prisma Postgres](/postgres) is a fully managed PostgreSQL database that scales to zero and integrates smoothly with both Prisma ORM and Prisma Studio. In this guide, you will learn how to set up a new TypeScript project from scratch, connect it to Prisma Postgres using Prisma ORM, and generate a Prisma Client for easy, type-safe access to your database.
+
+## 4. Initialize Prisma ORM
+
+You can now invoke the Prisma CLI by prefixing it with `npx`:
+
+```npm
+npx prisma
+```
+
+Next, set up your Prisma ORM project by creating your [Prisma Schema](/orm/prisma-schema/overview) file with the following command:
+
+```npm
+npx prisma init --output ../generated/prisma
+```
+
+`prisma init` creates the Prisma scaffolding and a local `DATABASE_URL`.
+
+This command does a few things:
+
+- Creates a `prisma/` directory with a `schema.prisma` file containing your database connection and schema models
+- Creates a `.env` file in the root directory for environment variables
+- Creates a `prisma.config.ts` file for Prisma configuration
+
+The generated `prisma.config.ts` file looks like this:
+
+```typescript title="prisma.config.ts"
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  datasource: {
+    url: env("DATABASE_URL"),
+  },
+});
+```
+
+The generated schema uses [the ESM-first `prisma-client` generator](/orm/prisma-schema/overview/generators#prisma-client) with a custom output path:
+
+```prisma title="prisma/schema.prisma"
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+```
+
+Create a Prisma Postgres database and replace the generated `DATABASE_URL` in your `.env` file with the `postgres://...` connection string from the CLI output:
+
+```npm
+npx create-db
+```
+
+## 7. Instantiate Prisma Client
+
+Now that you have all the dependencies installed, you can instantiate Prisma Client. You need to pass an instance of the Prisma ORM driver adapter to the `PrismaClient` constructor:
+
+```typescript title="lib/prisma.ts"
+import "dotenv/config";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../generated/prisma/client";
+
+const connectionString = `${process.env.DATABASE_URL}`;
+
+const adapter = new PrismaPg({ connectionString });
+const prisma = new PrismaClient({ adapter });
+
+export { prisma };
+```
+
+:::tip
+
+If you need to query your database via HTTP from an edge runtime (Cloudflare Workers, Vercel Edge Functions, etc.), use the [Prisma Postgres serverless driver](/postgres/database/serverless-driver#use-with-prisma-orm).
+
+:::
+

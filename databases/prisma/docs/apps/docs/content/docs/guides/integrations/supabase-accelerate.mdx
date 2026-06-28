@@ -1,0 +1,120 @@
+# Supabase with Accelerate
+
+## Introduction
+
+This guides teaches you how to add connection pooling to a PostgreSQL database hosted on [Supabase](https://supabase.com/) using [Prisma Accelerate](/accelerate).
+
+Prisma Accelerate is a robust and mature connection pooler enabling your database to function properly during traffic spikes and high load scenarios. Check out this [video](https://www.youtube.com/watch?v=cnL75if6Aq0) demonstrating how it performs in a load test or [learn why connection pooling is important](https://www.prisma.io/blog/saving-black-friday-with-connection-pooling).
+
+<Youtube videoId="cVB7Bv0T16M" title="Set up Supabase with Prisma Accelerate connection pooling" />
+
+## Prerequisites
+
+To successfully complete this guide, you need **a connection string for a PostgreSQL instance hosted on Supabase**. It typically looks similar to this:
+
+```bash no-copy
+postgresql://postgres:[YOUR-PASSWORD]@db.nzpppscrldfwlzfalbrf.supabase.co:5432/postgres
+```
+
+If you already have a project using Prisma ORM, you can skip the first two steps and jump ahead to [Step 3. Install the Accelerate extension](#3-install-the-accelerate-extension).
+
+## 1. Set up Prisma ORM
+
+Start by installing the Prisma CLI in your project:
+
+```npm
+npm install prisma --save-dev
+```
+
+Then, run the following command to initialize a new project:
+
+```npm
+npx prisma init
+```
+
+This will create a new `prisma` directory with a `schema.prisma` file and add a `.env` file with the `DATABASE_URL` environment variable.
+
+Update the file and set the `DATABASE_URL` to your Supabase connection string:
+
+```text title=".env"
+DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.nzpppscrldfwlzfalbrf.supabase.co:5432/postgres"
+```
+
+Create a `prisma.config.ts` file to configure Prisma:
+
+```typescript title="prisma.config.ts"
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  datasource: {
+    url: env("DATABASE_URL"),
+  },
+});
+```
+
+:::note
+
+You'll need to install the `dotenv` package to load environment variables:
+
+```npm
+npm install dotenv
+```
+
+:::
+
+## 4. Set up Accelerate in the Prisma Console
+
+To set up Accelerate in the Prisma Console, follow these steps:
+
+1. Log into the [Prisma Console](https://console.prisma.io).
+1. Select **New project**
+1. Choose a **Name** for your project
+1. In the **Choose your starting product** section, find the **Accelerate** card and click **Get started**
+1. In the field for your **Database connection string**, paste your Supabase connection string
+1. Select the **Region** that's closest to your database
+1. Click **Create project**
+1. On the next screen, click **Enable Accelerate**
+
+Once you went through these steps, you'll be redirected to another page where you need to the click the **Generate API key** button.
+
+You'll then be shown a new connection URL which enables you to connect to Prisma Accelerate's connection pool. This needs to be set as the new `DATABASE_URL` in your `.env` file:
+
+```text title=".env"
+DATABASE_URL="prisma://accelerate.prisma-data.net/?api_key=ey..."
+```
+
+:::note
+
+If you want to use Prisma Migrate with Prisma Accelerate, you need to provide a direct database URL in your `prisma.config.ts` file. The Accelerate URL (starting with `prisma://`) is used for queries via PrismaClient, while the direct database URL is used for migrations.
+
+Update your `prisma.config.ts`:
+
+```typescript title="prisma.config.ts"
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  datasource: {
+    url: env("DIRECT_URL"), // Direct database URL for migrations
+  },
+});
+```
+
+And add the `DIRECT_URL` to your `.env` file:
+
+```text title=".env"
+DATABASE_URL="prisma://accelerate.prisma-data.net/?api_key=ey..."
+DIRECT_URL="postgresql://postgres:[YOUR-PASSWORD]@db.nzpppscrldfwlzfalbrf.supabase.co:5432/postgres"
+```
+
+:::
+

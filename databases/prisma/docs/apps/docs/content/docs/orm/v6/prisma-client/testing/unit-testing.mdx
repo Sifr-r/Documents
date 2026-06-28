@@ -1,0 +1,114 @@
+# Unit testing
+
+## Mocking Prisma Client
+
+To ensure your unit tests are isolated from external factors you can mock Prisma Client, this means you get the benefits of being able to use your schema (**_type-safety_**), without having to make actual calls to your database when your tests are run.
+
+This guide will cover two approaches to mocking Prisma Client, a singleton instance and dependency injection. Both have their merits depending on your use cases. To help with mocking Prisma Client the [`jest-mock-extended`](https://github.com/marchaos/jest-mock-extended) package will be used.
+
+```npm
+npm install jest-mock-extended@2.0.4 --save-dev
+```
+
+:::danger
+
+At the time of writing, this guide uses `jest-mock-extended` version `^2.0.4`.
+
+:::
+
+### Singleton
+
+The following steps guide you through mocking Prisma Client using a singleton pattern.
+
+1. Create a file at your projects root called `client.ts` and add the following code. This will instantiate a Prisma Client instance.
+
+   ```ts title="client.ts"
+   import { PrismaClient } from "@prisma/client";
+
+   const prisma = new PrismaClient();
+   export default prisma;
+   ```
+
+2. Next create a file named `singleton.ts` at your projects root and add the following:
+
+   ```ts title="singleton.ts"
+   import { PrismaClient } from "@prisma/client";
+   import { mockDeep, mockReset, DeepMockProxy } from "jest-mock-extended";
+
+   import prisma from "./client";
+
+   jest.mock("./client", () => ({
+     __esModule: true,
+     default: mockDeep(),
+   }));
+
+   beforeEach(() => {
+     mockReset(prismaMock);
+   });
+
+   export const prismaMock = prisma as unknown as DeepMockProxy;
+   ```
+
+The singleton file tells Jest to mock a default export (the Prisma Client instance in `./client.ts`), and uses the `mockDeep` method from `jest-mock-extended` to enable access to the objects and methods available on Prisma Client. It then resets the mocked instance before each test is run.
+
+Next, add the `setupFilesAfterEnv` property to your `jest.config.js` file with the path to your `singleton.ts` file.
+
+```js title="jest.config.js" highlight=5;add showLineNumbers
+module.exports = {
+  clearMocks: true,
+  preset: "ts-jest",
+  testEnvironment: "node",
+  setupFilesAfterEnv: ["<rootDir>/singleton.ts"], {/* [!code ++] */}
+};
+```
+
+### Dependency injection
+
+Another popular pattern that can be used is dependency injection.
+
+1. Create a `context.ts` file and add the following:
+
+   ```ts title="context.ts"
+   import { PrismaClient } from "@prisma/client";
+   import { mockDeep, DeepMockProxy } from "jest-mock-extended";
+
+   export type Context = {
+     prisma: PrismaClient;
+   };
+
+   export type MockContext = {
+     prisma: DeepMockProxy;
+   };
+
+   export const createMockContext = (): MockContext => {
+     return {
+       prisma: mockDeep(),
+     };
+   };
+   ```
+
+:::tip
+
+If you find that you're seeing a circular dependency error highlighted through mocking Prisma Client, try adding `"strictNullChecks": true`
+to your `tsconfig.json`.
+
+:::
+
+2. To use the context, you would do the following in your test file:
+
+   ```ts
+   import { MockContext, Context, createMockContext } from "../context";
+
+   let mockCtx: MockContext;
+   let ctx: Context;
+
+## Mocking Prisma Client (part 2)
+
+beforeEach(() => {
+     mockCtx = createMockContext();
+     ctx = mockCtx as unknown as Context;
+   });
+   ```
+
+This will create a new context before each test is run via the `createMockContext` function. This (`mockCtx`) context will be used to make a mock call to Prisma Client and run a query to test. The `ctx` context will be used to run a scenario query that is tested against.
+

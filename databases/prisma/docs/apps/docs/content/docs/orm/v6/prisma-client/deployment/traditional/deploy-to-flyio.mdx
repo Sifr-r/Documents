@@ -1,0 +1,21 @@
+# Deploy to Fly.io
+
+## Understand the example
+
+Before we deploy the app, let's take a look at the example code.
+
+### Web application
+
+The logic for the Express app is in two files:
+
+- `src/index.js`: The API. The endpoints use Prisma Client to fetch, create, and delete data from the database.
+- `public/index.html`: The web frontend. The frontend calls a few of the API endpoints.
+
+### Prisma schema and migrations
+
+The Prisma components of this app are in three files:
+
+- `prisma/schema.prisma`: The data model of this app. This example defines two models, `User` and `Post`. The format of this file follows the [Prisma schema](/orm/v6/prisma-schema/overview).
+- `prisma/migrations/<migration name>/migration.sql`: The SQL commands that construct this schema in a PostgreSQL database. You can auto-generate migration files like this one by running [`prisma migrate dev`](/orm/v6/prisma-migrate/understanding-prisma-migrate/mental-model#what-is-prisma-migrate).
+- `prisma/seed.js`: defines some test users and postsPrisma, used to [seed the database](/orm/v6/prisma-migrate/workflows/seeding) with starter data.
+

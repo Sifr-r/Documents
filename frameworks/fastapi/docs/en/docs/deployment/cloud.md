@@ -1,0 +1,18 @@
+# cloud
+
+## Introduction
+
+You can use virtually **any cloud provider** to deploy your FastAPI application.
+
+In most of the cases, the main cloud providers have guides to deploy FastAPI with them.
+
+## FastAPI Cloud { #fastapi-cloud }
+
+**[FastAPI Cloud](https://fastapicloud.com)** is built by the same author and team behind **FastAPI**.
+
+It streamlines the process of **building**, **deploying**, and **accessing** an API with minimal effort.
+
+It brings the same **developer experience** of building apps with FastAPI to **deploying** them to the cloud. 🎉
+
+FastAPI Cloud is the primary sponsor and funding provider for the *FastAPI and friends* open source projects. ✨
+

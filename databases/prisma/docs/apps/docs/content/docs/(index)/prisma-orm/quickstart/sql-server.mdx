@@ -1,0 +1,152 @@
+# SQL Server
+
+## Introduction
+
+[Microsoft SQL Server](https://www.microsoft.com/en-us/sql-server) is an enterprise-grade relational database. In this guide, you will learn how to set up a new TypeScript project from scratch, connect it to SQL Server using Prisma ORM, and generate a Prisma Client for easy, type-safe access to your database.
+
+## 2. Install required dependencies
+
+Install the packages needed for this quickstart:
+
+```npm
+npm install prisma @types/node @types/mssql --save-dev
+npm install @prisma/client @prisma/adapter-mssql dotenv
+```
+
+Here's what each package does:
+
+- **`prisma`** - The Prisma CLI for running commands like `prisma init`, `prisma migrate`, and `prisma generate`
+- **`@prisma/client`** - The Prisma Client library for querying your database
+- **`@prisma/adapter-mssql`** - The SQL Server driver adapter that connects Prisma Client to your database
+- **`@types/mssql`** - TypeScript type definitions for mssql
+- **`dotenv`** - Loads environment variables from your `.env` file
+
+## 4. Initialize Prisma ORM
+
+You can now invoke the Prisma CLI by prefixing it with `npx`:
+
+```npm
+npx prisma
+```
+
+Next, set up your Prisma ORM project by creating your [Prisma Schema](/orm/prisma-schema/overview) file with the following command:
+
+```npm
+npx prisma init --datasource-provider sqlserver --output ../generated/prisma
+```
+
+This command does a few things:
+
+- Creates a `prisma/` directory with a `schema.prisma` file containing your database connection and schema models
+- Creates a `.env` file in the root directory for environment variables
+- Creates a `prisma.config.ts` file for Prisma configuration
+
+The generated `prisma.config.ts` file looks like this:
+
+```typescript title="prisma.config.ts"
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  datasource: {
+    url: env("DATABASE_URL"),
+  },
+});
+```
+
+The generated schema uses [the ESM-first `prisma-client` generator](/orm/prisma-schema/overview/generators#prisma-client) with a custom output path:
+
+```prisma title="prisma/schema.prisma"
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlserver"
+}
+```
+
+Update your `.env` file with your SQL Server connection string details:
+
+```bash title=".env"
+DATABASE_URL="sqlserver://localhost:1433;database=mydb;user=username;password=password;encrypt=true"
+DB_USER="username" # [!code ++]
+DB_PASSWORD="password" # [!code ++]
+DB_NAME="mydb" # [!code ++]
+HOST="localhost" # [!code ++]
+```
+
+Replace the placeholders with your actual database credentials:
+
+- `localhost:1433`: Your SQL Server host and port
+- `mydb`: Your database name
+- `username`: Your SQL Server username
+- `password`: Your SQL Server password
+
+## 5. Define your data model
+
+Open `prisma/schema.prisma` and add the following models:
+
+```prisma title="prisma/schema.prisma"
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlserver"
+}
+
+model User { // [!code ++]
+  id    Int     @id @default(autoincrement()) // [!code ++]
+  email String  @unique // [!code ++]
+  name  String? // [!code ++]
+  posts Post[] // [!code ++]
+} // [!code ++]
+
+model Post { // [!code ++]
+  id        Int     @id @default(autoincrement()) // [!code ++]
+  title     String // [!code ++]
+  content   String? // [!code ++]
+  published Boolean @default(false) // [!code ++]
+  author    User    @relation(fields: [authorId], references: [id]) // [!code ++]
+  authorId  Int // [!code ++]
+} // [!code ++]
+```
+
+## 7. Instantiate Prisma Client
+
+Now that you have all the dependencies installed, you can instantiate Prisma Client. You need to pass an instance of the Prisma ORM driver adapter adapter to the `PrismaClient` constructor:
+
+```typescript title="lib/prisma.ts"
+import "dotenv/config";
+import { PrismaMssql } from "@prisma/adapter-mssql";
+import { PrismaClient } from "../generated/prisma/client";
+
+const sqlConfig = {
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  server: process.env.HOST,
+  pool: {
+    max: 10,
+    min: 0,
+    idleTimeoutMillis: 30000,
+  },
+  options: {
+    encrypt: true, // for azure
+    trustServerCertificate: false, // change to true for local dev / self-signed certs
+  },
+};
+
+const adapter = new PrismaMssql(sqlConfig);
+const prisma = new PrismaClient({ adapter });
+
+export { prisma };
+```
+

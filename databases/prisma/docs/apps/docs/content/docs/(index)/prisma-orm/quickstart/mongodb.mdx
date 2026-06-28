@@ -1,0 +1,200 @@
+# MongoDB
+
+## Introduction
+
+[MongoDB](https://www.mongodb.com) is a popular NoSQL document database. In this guide, you will learn how to set up a new TypeScript project from scratch, connect it to MongoDB using Prisma ORM, and generate a Prisma Client for easy, type-safe access to your database.
+
+:::warning[MongoDB support for Prisma ORM v7]
+
+**MongoDB support for Prisma ORM v7 is coming in the near future.** In the meantime, please use **Prisma ORM v6.19** (the latest v6 release) when working with MongoDB.
+
+This guide uses Prisma ORM v6.19 to ensure full compatibility with MongoDB.
+
+:::
+
+## 2. Install required dependencies
+
+Install the packages needed for this quickstart:
+
+```npm
+npm install prisma@6.19 @types/node --save-dev
+```
+
+```npm
+npm install @prisma/client@6.19 dotenv
+```
+
+:::info[Why Prisma v6.19?]
+
+This is the latest stable version of Prisma ORM v6 that fully supports MongoDB. MongoDB support for Prisma ORM v7 is coming soon. You can also install `prisma@6` and `@prisma/client@6` to automatically get the latest v6 release.
+
+:::
+
+Here's what each package does:
+
+- **`prisma`** - The Prisma CLI for running commands like `prisma init`, `prisma db push`, and `prisma generate`
+- **`@prisma/client`** - The Prisma Client library for querying your database
+- **`dotenv`** - Loads environment variables from your `.env` file
+
+:::note
+
+MongoDB doesn't require driver adapters since Prisma ORM connects directly to MongoDB.
+
+:::
+
+## 4. Initialize Prisma ORM
+
+You can now invoke the Prisma CLI by prefixing it with `npx`:
+
+```npm
+npx prisma
+```
+
+Next, set up your Prisma ORM project by creating your [Prisma Schema](/orm/prisma-schema/overview) file with the following command:
+
+```npm
+npx prisma init --datasource-provider mongodb --output ../generated/prisma
+```
+
+This command does a few things:
+
+- Creates a `prisma/` directory with a `schema.prisma` file for your database connection and schema models
+- Creates a `.env` file in the root directory for environment variables
+- Creates a `prisma.config.ts` file for Prisma configuration
+
+:::note
+
+Prisma Client will be generated in the `generated/prisma/` directory when you run `npx prisma generate` later in this guide.
+
+:::
+
+The generated `prisma.config.ts` file looks like this:
+
+```typescript title="prisma.config.ts"
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  engine: "classic",
+  datasource: {
+    url: env("DATABASE_URL"),
+  },
+});
+```
+
+Add `dotenv` to `prisma.config.ts` so that Prisma can load environment variables from your `.env` file:
+
+```typescript title="prisma.config.ts"
+import "dotenv/config"; // [!code ++]
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  engine: "classic",
+  datasource: {
+    url: env("DATABASE_URL"),
+  },
+});
+```
+
+The generated schema uses [the ESM-first `prisma-client` generator](/orm/prisma-schema/overview/generators#prisma-client) with a custom output path:
+
+```prisma title="prisma/schema.prisma"
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url = env("DATABASE_URL")
+}
+```
+
+Update your `.env` file with your MongoDB connection string:
+
+```text title=".env"
+DATABASE_URL="mongodb+srv://username:password@cluster.mongodb.net/mydb"
+```
+
+:::tip
+
+Replace `username`, `password`, `cluster`, and `mydb` with your actual MongoDB credentials and database name. You can get your connection string from [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) or your MongoDB deployment.
+
+:::
+
+## 5. Define your data model
+
+Open `prisma/schema.prisma` and add the following models:
+
+```prisma title="prisma/schema.prisma"
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url = env("DATABASE_URL")
+}
+
+model User { // [!code ++]
+  id    String  @id @default(auto()) @map("_id") @db.ObjectId // [!code ++]
+  email String  @unique // [!code ++]
+  name  String? // [!code ++]
+  posts Post[] // [!code ++]
+} // [!code ++]
+
+model Post { // [!code ++]
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId // [!code ++]
+  title     String // [!code ++]
+  content   String? // [!code ++]
+  published Boolean @default(false) // [!code ++]
+  author    User    @relation(fields: [authorId], references: [id]) // [!code ++]
+  authorId  String  @db.ObjectId // [!code ++]
+} // [!code ++]
+```
+
+## 6. Push your schema to MongoDB
+
+MongoDB doesn't support migrations like relational databases. Instead, use `db push` to sync your schema:
+
+```npm
+npx prisma db push
+```
+
+This command:
+
+- Creates the collections in MongoDB based on your schema
+- Automatically generates Prisma Client
+
+:::info
+
+Unlike relational databases, MongoDB uses a flexible schema. The `db push` command ensures your Prisma schema is reflected in your database without creating migration files.
+
+:::
+
+## 7. Instantiate Prisma Client
+
+Now that you have all the dependencies installed, you can instantiate Prisma Client:
+
+```typescript title="lib/prisma.ts"
+import "dotenv/config";
+import { PrismaClient } from "../generated/prisma/client";
+
+const prisma = new PrismaClient();
+
+export { prisma };
+```
+
+## Troubleshooting
+
+- **Authentication failed** — If you see a `SCRAM failure: Authentication failed` error, [add `?authSource=admin`](https://github.com/prisma/prisma/discussions/9994#discussioncomment-1562283) to the end of your connection string.
+- **Empty database name** — If you see an `Error code 8000 (AtlasError): empty database name not allowed` error, append the database name to your connection URL. See this [GitHub issue](https://github.com/prisma/web/issues/5562) for details.
+

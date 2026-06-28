@@ -1,0 +1,20 @@
+# Content entry frontmatter does not match schema.
+
+## Introduction
+
+:::caution[Deprecated]
+This error only applies to legacy content collections which were removed in Astro 6.
+:::
+
+> **Example error message:**<br/>
+**blog** → **post.md** frontmatter does not match collection schema.<br/>
+"title" is required.<br/>
+"date" must be a valid date.
+
+## What went wrong?
+
+A Markdown or MDX entry does not match its collection schema.
+Make sure that all required fields are present, and that all fields are of the correct type.
+You can check against the collection schema in your `src/content.config.*` file.
+See the [Content collections documentation](/en/guides/content-collections/) for more information.
+

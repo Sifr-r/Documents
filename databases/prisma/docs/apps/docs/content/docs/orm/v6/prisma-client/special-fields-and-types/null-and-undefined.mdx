@@ -1,0 +1,198 @@
+# Null and undefined
+
+## Introduction
+
+:::warning
+
+In Prisma ORM, if `undefined` is passed as a value, it is not included in the generated query. This behavior can lead to unexpected results and data loss. In order to prevent this, we strongly recommend updating to version 5.20.0 or later to take advantage of the new `strictUndefinedChecks` Preview feature, described below.
+
+For documentation on the current behavior (without the `strictUndefinedChecks` Preview feature) see [current behavior](#current-behavior).
+
+:::
+
+## Strict undefined checks (Preview feature)
+
+Prisma ORM 5.20.0 introduces a new Preview feature called `strictUndefinedChecks`. This feature changes how Prisma Client handles `undefined` values, offering better protection against accidental data loss or unintended query behavior.
+
+### Enabling strict undefined checks
+
+To enable this feature, add the following to your Prisma schema:
+
+```prisma
+generator client {
+  provider        = "prisma-client"
+  output          = "./generated"
+  previewFeatures = ["strictUndefinedChecks"]
+}
+```
+
+### Using strict undefined checks
+
+When this feature is enabled:
+
+1. Explicitly setting a field to `undefined` in a query will cause a runtime error.
+2. To skip a field in a query, use the new `Prisma.skip` symbol instead of `undefined`.
+
+Example usage:
+
+```typescript
+// This will throw an error
+prisma.user.create({
+  data: {
+    name: "Alice",
+    email: undefined, // Error: Cannot explicitly use undefined here
+  },
+});
+
+// Use `Prisma.skip` (a symbol provided by Prisma) to omit a field
+prisma.user.create({
+  data: {
+    name: "Alice",
+    email: Prisma.skip, // This field will be omitted from the query
+  },
+});
+```
+
+This change helps prevent accidental deletions or updates, such as:
+
+```typescript
+// Before: This would delete all users
+prisma.user.deleteMany({
+  where: {
+    id: undefined
+  }
+})
+
+// After: This will throw an error
+Invalid \`prisma.user.deleteMany()\` invocation in
+/client/tests/functional/strictUndefinedChecks/test.ts:0:0
+  XX })
+  XX
+  XX test('throws on undefined input field', async () => {
+→ XX   const result = prisma.user.deleteMany({
+         where: {
+           id: undefined
+               ~~~~~~~~~
+         }
+       })
+Invalid value for argument \`where\`: explicitly \`undefined\` values are not allowed."
+```
+
+### Migration path
+
+To migrate existing code:
+
+```typescript
+// Before
+let optionalEmail: string | undefined;
+
+prisma.user.create({
+  data: {
+    name: "Alice",
+    email: optionalEmail,
+  },
+});
+
+// After
+prisma.user.create({
+  data: {
+    name: "Alice",
+    email: optionalEmail ?? Prisma.skip, // [!code highlight]
+  },
+});
+```
+
+### `exactOptionalPropertyTypes`
+
+In addition to `strictUndefinedChecks`, we also recommend enabling the TypeScript compiler option `exactOptionalPropertyTypes`. This option enforces that optional properties must match exactly, which can help catch potential issues with `undefined` values in your code. While `strictUndefinedChecks` will raise runtime errors for invalid `undefined` usage, `exactOptionalPropertyTypes` will catch these issues during the build process.
+
+Learn more about `exactOptionalPropertyTypes` in the [TypeScript documentation](https://www.typescriptlang.org/tsconfig/#exactOptionalPropertyTypes).
+
+### Feedback
+
+As always, we welcome your feedback on this feature. Please share your thoughts and suggestions in the [GitHub discussion for this Preview feature](https://github.com/prisma/prisma/discussions/25271).
+
+## current behavior (part 3)
+
+The following table provides a high-level overview of how the different operators handle 0, 1 and `n` filters.
+
+| Operator | 0 filters         | 1 filter               | n filters            |
+| -------- | ----------------- | ---------------------- | -------------------- |
+| `OR`     | return empty list | validate single filter | validate all filters |
+| `AND`    | return all items  | validate single filter | validate all filters |
+| `NOT`    | return all items  | validate single filter | validate all filters |
+
+This example shows how an `undefined` parameter impacts the results returned by a query that uses the [`OR`](/orm/v6/reference/prisma-client-reference#or) operator.
+
+```ts
+interface FormData {
+  name: string;
+  email?: string;
+}
+
+const formData: FormData = {
+  name: "Emelie",
+};
+
+const users = await prisma.user.findMany({
+  where: {
+    OR: [
+      {
+        email: {
+          contains: formData.email,
+        },
+      },
+    ],
+  },
+});
+
+// returns: []
+```
+
+The query receives filters from a formData object, which includes an optional email property. In this instance, the value of the email property is `undefined`. When this query is run no data is returned.
+
+This is in contrast to the [`AND`](/orm/v6/reference/prisma-client-reference#and) and [`NOT`](/orm/v6/reference/prisma-client-reference#not-1) operators, which will both return all the users
+if you pass in an `undefined` value.
+
+> This is because passing an `undefined` value to an `AND` or `NOT` operator is the same
+> as passing nothing at all, meaning the `findMany` query in the example will run without any filters and return all the users.
+
+```ts
+interface FormData {
+  name: string;
+  email?: string;
+}
+
+const formData: FormData = {
+  name: "Emelie",
+};
+
+const users = await prisma.user.findMany({
+  where: {
+    AND: [
+      {
+        email: {
+          contains: formData.email,
+        },
+      },
+    ],
+  },
+});
+
+// returns: { id: 1, email: 'ems@boop.com', name: 'Emelie' }
+
+const users = await prisma.user.findMany({
+  where: {
+    NOT: [
+      {
+        email: {
+          contains: formData.email,
+        },
+      },
+    ],
+  },
+});
+
+// returns: { id: 1, email: 'ems@boop.com', name: 'Emelie' }
+```
+

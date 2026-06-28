@@ -1,0 +1,18 @@
+# useRequestEvent
+
+## Introduction
+
+Within the [Nuxt context](/docs/3.x/guide/going-further/nuxt-app#the-nuxt-context) you can use `useRequestEvent` to access the incoming request.
+
+```ts
+// Get underlying request event
+const event = useRequestEvent()
+
+// Get the URL
+const url = event?.path
+```
+
+::tip
+In the browser, `useRequestEvent` will return `undefined`.
+::
+

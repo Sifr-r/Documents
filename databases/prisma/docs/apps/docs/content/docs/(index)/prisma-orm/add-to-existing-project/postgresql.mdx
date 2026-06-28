@@ -1,0 +1,82 @@
+# PostgreSQL
+
+## Introduction
+
+[PostgreSQL](https://www.postgresql.org/) is a popular open-source relational database known for its reliability, feature robustness, and performance. In this guide, you will learn how to add Prisma ORM to an existing TypeScript project, connect it to PostgreSQL, introspect your existing database schema, and start querying with type-safe Prisma Client.
+
+## 1. Set up Prisma ORM
+
+Navigate to your existing project directory and install the required dependencies:
+
+```npm
+npm install prisma @types/node @types/pg --save-dev
+npm install @prisma/client @prisma/adapter-pg pg dotenv
+```
+
+Here's what each package does:
+
+- **`prisma`** - The Prisma CLI for running commands like `prisma init`, `prisma db pull`, and `prisma generate`
+- **`@prisma/client`** - The Prisma Client library for querying your database
+- **`@prisma/adapter-pg`** - The [`node-postgres` driver adapter](/orm/core-concepts/supported-databases/postgresql#using-driver-adapters) that connects Prisma Client to your database
+- **`pg`** - The node-postgres database driver
+- **`@types/pg`** - TypeScript type definitions for node-postgres
+- **`dotenv`** - Loads environment variables from your `.env` file
+
+## 2. Initialize Prisma ORM
+
+Set up your Prisma ORM project by creating your [Prisma Schema](/orm/prisma-schema/overview) file with the following command:
+
+```npm
+npx prisma init --datasource-provider postgresql --output ../generated/prisma
+```
+
+This command does a few things:
+
+- Creates a `prisma/` directory with a `schema.prisma` file containing your database connection configuration
+- Creates a `.env` file in the root directory for environment variables
+- Creates a `prisma.config.ts` file for Prisma configuration
+
+The generated `prisma.config.ts` file looks like this:
+
+```typescript title="prisma.config.ts"
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  datasource: {
+    url: env("DATABASE_URL"),
+  },
+});
+```
+
+The generated schema uses [the ESM-first `prisma-client` generator](/orm/prisma-schema/overview/generators#prisma-client) with a custom output path:
+
+```prisma title="prisma/schema.prisma"
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+```
+
+## 3. Connect your database
+
+Update the `.env` file with your PostgreSQL connection URL:
+
+```text title=".env"
+DATABASE_URL="postgresql://user:password@localhost:5432/mydb?schema=public"
+```
+
+The [format of the connection URL](/orm/reference/connection-urls) for PostgreSQL looks as follows:
+
+```
+postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA
+```
+

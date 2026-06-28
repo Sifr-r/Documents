@@ -1,0 +1,10 @@
+# Astro.response.headers must not be reassigned.
+
+## Introduction
+
+> **AstroResponseHeadersReassigned**: Individual headers can be added to and removed from `Astro.response.headers`, but it must not be replaced with another instance of `Headers` altogether.
+
+## What went wrong?
+
+Thrown when a value is being set as the `headers` field on the `ResponseInit` object available as `Astro.response`.
+

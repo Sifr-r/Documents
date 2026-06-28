@@ -1,0 +1,10 @@
+# Enabled manual internationalization routing without having a middleware.
+
+## Introduction
+
+> **MissingMiddlewareForInternationalization**: Your configuration setting `i18n.routing: 'manual'` requires you to provide your own i18n `middleware` file.
+
+## What went wrong?
+
+Astro throws an error if the user enables manual routing, but it doesn't have a middleware file.
+

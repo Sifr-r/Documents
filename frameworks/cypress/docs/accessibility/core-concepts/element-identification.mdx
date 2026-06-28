@@ -1,0 +1,91 @@
+# Uniquely identify test elements | Cypress Accessibility
+
+## Introduction
+
+<ProductHeading product="accessibility" />
+
+# Element Identification
+
+Cypress Accessibility identifies elements across views and snapshots using a combination of HTML attributes, location, and other signals in the DOM. Stable and unique identifiers are crucial for accurately tracking and de-duplicating elements throughout the various snapshots captured in your tests.
+
+If your HTML uses attributes about things like component structure, design system versioning, or team ownership of certain DOM areas, Cypress Accessibility can be configured to include those as well. Configuration can also be used to avoid noisy locators that artificially inflate the count of issues, or to declare preferred identifiers that should be used.
+
+Good element identification makes element selectors more readable and meaningful when [reviewing violation details](/accessibility/core-concepts/inspecting-violation-details), and when [creating tickets](/accessibility/core-concepts/inspecting-violation-details#Create-Jira-issue), or having the selectors interpreted by AI tools (see the we [Work with AI agents](/accessibility/work-with-ai-agents))
+
+## Significant attributes for identification
+
+Certain attributes are prioritized by Cypress Accessibility for element identification. These include:
+
+- `data-cy`
+- `data-test`
+- `data-testid`
+- `data-test-id`
+- `data-qa`
+- `row-id`
+- `id`
+- `name`
+
+If you already have Test IDs or similar attributes in your application, Cypress Accessibility will pick these up and use them to recognize the same element in a new place for improved deduplication. This behavior itself is configurable as well, so that highly-dynamic Test IDs can be avoided, for example.
+
+## Configuring element identification
+
+Using these configuration properties helps you adjust the amount of deduplication Cypress will do to match what makes sense in your application. For example, a component-based Test ID might make a great identifier if the component renders static content, but the same exact test ID would be a poor identifier if the component renders different things everywhere - you might rather treat those instances as unique for accessibility purposes.
+
+### Attribute filters
+
+Exclude irrelevant or dynamically generated attributes to reduce noise in Cypress Accessibility reports. For example, this would avoid certain IDs that are commonly generated in React applications from being used as element references in Cypress Accessibility.
+
+```json
+{
+  "attributeFilters": [
+    {
+      "attribute": "id",
+      "value": ":r.*:",
+      "include": false
+    }
+  ]
+}
+```
+
+Elements with these IDs will still be included in your accessibility report, but they will be identified in a different way.
+
+Learn more about attribute filtering in the [Attribute Filters guide](/accessibility/configuration/attributefilters).
+
+### Significant attributes
+
+Define custom significant attributes to prioritize specific selectors that align with your application’s structure. For example:
+
+```json
+{
+  "significantAttributes": ["data-custom-id"]
+}
+```
+
+Refer to the [Significant Attributes](/accessibility/configuration/significantattributes) guide for detailed instructions.
+
+### Component attributes
+
+Require extra attributes (such as a component or team identifier) in the **violation target selectors** shown in reports, to provide consistency and readability in your selectors:
+
+```json
+{
+  "accessibility": {
+    "components": {
+      "componentAttributes": [
+        { "attributeName": "data-component-name", "includeInSelector": true }
+      ]
+    }
+  }
+}
+```
+
+See the [components](/accessibility/configuration/components) configuration guide for `componentAttributeFilters`, defaults, and examples.
+
+## Differences compared to Axe-Core® element identification
+
+The Cypress Cloud process replaces the underlying Axe-Core® library's default mechanism for identifying elements.
+
+Axe-Core® captures a unique identifier for a given element in a specific DOM context, focused on one single state. This default behavior does not account for merging thousands of Axe-Core® scans into a single report or for comparing scans of the application as the application changes.
+
+Taking control over how elements are tracked in your reports helps you get the right level of de-duplication across elements when they are truly the same, and track similar elements individually when they are different.
+

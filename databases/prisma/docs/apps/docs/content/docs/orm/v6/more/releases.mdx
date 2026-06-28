@@ -1,0 +1,39 @@
+# ORM releases and maturity levels
+
+## Product maturity levels
+
+A release can include products or features at different maturity levels. Maturity level describes a product or feature's completeness and what users can expect in terms of breaking changes.
+
+> **Note**: As of version [2.13.0](https://github.com/prisma/prisma/releases/2.13.0), 'Experimental' is no longer part of the product maturity scale.
+
+### Early Access
+
+If a feature or product is **Early Access**:
+
+- We have validated a problem and are considering a solution to it but are not certain whether that solution is complete or a perfect fit.
+- We want to gather more feedback and adjust the solution as necessary, knowing that users are prepared for significant breaking changes
+
+We don't recommend using Early Access features or products in production.
+
+### Preview
+
+If a feature or product is a **Preview**:
+
+- We have validated the feature or product in terms of direction and surface.
+- Users can count on the feature or product and associated API to be mostly stable unless stated otherwise in the release notes and documentation.
+- There are no significant known issues, although minor bugs may exist.
+- We welcome feedback on these to make the solution stable as quickly as possible.
+
+Previews are typically available behind a feature flag or require some form of opt-in (for example, by providing a `--preview-feature` flag in the CLI or [adding them to a `previewFeatures` property in the `generator` block](/orm/v6/reference/preview-features/cli-preview-features) for Prisma Client in your Prisma schema).
+
+We don't recommend using Preview features or products in production.
+
+See also: [All currently available Preview features](/orm/v6/reference/preview-features).
+
+### Generally Available (GA)
+
+If a feature or product is **Generally Available**:
+
+- The solution has been tested for some time and we received enough feedback to consider it stable and ready for production use.
+- There should be no bugs in 99% of cases (completely bug-free software cannot be guaranteed)
+

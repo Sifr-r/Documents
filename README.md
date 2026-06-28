@@ -15,9 +15,9 @@ query in milliseconds.
 
 ```
 languages/          # 28 programming languages (JS, Python, Rust, Go, Java, C#, …)
-frameworks/         # 24 web frameworks (React, Vue, Django, FastAPI, Rails, …)
+frameworks/         # 33 web frameworks & libraries (React, Vue, Next.js, Nuxt, Hono, Cypress, Playwright, Jest, Vitest, Zustand, …)
 databases/          # 8 databases & ORMs (PostgreSQL, MongoDB, Redis, Prisma, Vector DBs, …)
-devops/             # 6 DevOps tools (Docker, Kubernetes, Terraform, Nginx, …)
+devops/             # 8 DevOps tools (Docker, Kubernetes, Terraform, Nginx, Context, Graph, …)
 web-platform/       # HTML, CSS, Web APIs
 concepts/           # Cross-cutting topics (HTTP, Git, Testing, Databases …)
 _template/          # Copy this to add a new domain

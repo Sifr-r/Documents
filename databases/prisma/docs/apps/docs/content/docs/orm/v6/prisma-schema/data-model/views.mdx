@@ -1,0 +1,146 @@
+# Views
+
+## Introduction
+
+Database views allow you to name and store queries. In relational databases, views are [stored SQL queries](https://www.postgresql.org/docs/current/sql-createview.html) that might include columns in multiple tables, or calculated values such as aggregates. In MongoDB, views are queryable objects where the contents are defined by an [aggregation pipeline](https://www.mongodb.com/docs/manual/core/aggregation-pipeline) on other collections.
+
+The `views` preview feature allows you to represent views in your Prisma schema with the `view` keyword. To use views in Prisma ORM, follow these steps:
+
+1. [Enable the `views` preview feature](#enable-the-views-preview-feature)
+1. [Create a view in the underlying database](#create-a-view-in-the-underlying-database), either directly or as a [manual addition to a Prisma Migrate migration file](#use-views-with-prisma-migrate-and-db-push), or use an existing view
+1. [Represent the view in your Prisma schema](#add-views-to-your-prisma-schema)
+1. [Query the view in Prisma Client](#query-views-in-prisma-client)
+
+:::warning
+
+Support for views is currently a [Preview](/orm/v6/more/releases#preview) feature. You can add a view to your Prisma schema with the `view` keyword or introspect the views in your database schema with `db pull`. You cannot yet apply views in your schema to your database with Prisma Migrate and `db push` unless the changes are added manually to your migration file using the `--create-only` flag. <br /><br />For updates on progress with this feature, follow [our GitHub issue](https://github.com/prisma/prisma/issues/17335).
+
+:::
+
+## Add views to your Prisma schema
+
+To add a view to your Prisma schema, use the `view` keyword.
+
+You can represent the `UserInfo` view from the example above in your Prisma schema as follows:
+
+```prisma tab="Relational databases"
+view UserInfo {
+  id    Int
+  email String
+  name  String
+  bio   String
+}
+```
+
+```prisma tab="MongoDB"
+view UserInfo {
+  id    String @map("_id") @db.ObjectId
+  email String
+  name  String
+  bio   String
+}
+```
+
+### Write by hand
+
+A `view` block is comprised of two main pieces:
+
+- The `view` block definition
+- The view's field definitions
+
+These two pieces allow you to define the name of your view in the generated Prisma Client and the columns present in your view's query results.
+
+#### Define a `view` block
+
+To define the `UserInfo` view from the example above, begin by using the `view` keyword to define a `view` block in your schema named `UserInfo`:
+
+```prisma
+view UserInfo {
+  // Fields
+}
+```
+
+#### Define fields
+
+The properties of a view are called _fields_, which consist of:
+
+- A field name
+- A field type
+
+The fields of the `UserInfo` example view can be defined as follows:
+
+```prisma highlight=2-5;normal tab="Relational databases"
+view UserInfo {
+  id    Int // [!code highlight]
+  email String // [!code highlight]
+  name  String // [!code highlight]
+  bio   String // [!code highlight]
+}
+```
+
+```prisma highlight=2-5;normal tab="MongoDB"
+view UserInfo {
+  id    String @map("_id") @db.ObjectId // [!code highlight]
+  email String // [!code highlight]
+  name  String // [!code highlight]
+  bio   String // [!code highlight]
+}
+```
+
+Each _field_ of a `view` block represents a column in the query results of the view in the underlying database.
+
+### Use introspection
+
+:::warning
+Currently views can only be introspected with PostgreSQL, MySQL, SQL Server and CockroachDB databases. If you are using another database provider, your views must be added manually.
+:::
+
+If you have an existing view or views defined in your database, [introspection](/orm/v6/prisma-schema/introspection) will automatically generate `view` blocks in your Prisma schema that represent those views.
+
+Assuming the example `UserInfo` view exists in your underlying database, running the following command will generate a `view` block in your Prisma schema representing that view:
+
+```npm
+npx prisma db pull
+```
+
+The resulting `view` block will be defined as follows:
+
+```prisma
+view UserInfo {
+  id    Int?
+  email String?
+  name  String?
+  bio   String?
+}
+```
+
+:::warning
+Please note for now `db pull` will only introspect views in your schema when using PostgreSQL, MySQL, SQL Server or CockroachDB. Support for this workflow will be extended to other database providers.
+:::
+
+#### The `views` directory
+
+Introspection of a database with one or more existing views will also create a new `views` directory within your `prisma` directory (starting with Prisma version 4.12.0). This directory will contain a subdirectory named after your database's schema which contains a `.sql` file for each view that was introspected in that schema. Each file will be named after an individual view and will contain the query the related view defines.
+
+## Special types of views
+
+This section describes how to use Prisma ORM with updatable and materialized views in your database.
+
+### Updatable views
+
+Some databases support _updatable views_ (e.g. [PostgreSQL](https://www.postgresql.org/docs/current/sql-createview.html#SQL-CREATEVIEW-UPDATABLE-VIEWS), [MySQL](https://dev.mysql.com/doc/refman/8.0/en/view-updatability.html), and [SQL Server](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-view-transact-sql?view=sql-server-ver16#updatable-views)). Updatable views allow creating, updating, or deleting entries if the underlying database supports such operations.
+
+Prisma ORM does not allow any mutations (create, update, delete) on views, regardless of the database's capabilities. This change provides guardrails to ensure that views are treated consistently as read-only entities within Prisma Client. As a result, methods to perform writes such as `create`, `update`, `delete`, or `upsert` are not generated for `view` blocks in your Prisma Client API.
+
+If you need to modify data represented by a view, you must perform the write operations directly on the underlying tables or use raw SQL queries.
+
+### Materialized views
+
+Some databases support materialized views, e.g. [PostgreSQL](https://www.postgresql.org/docs/current/rules-materializedviews.html), [CockroachDB](https://www.cockroachlabs.com/docs/stable/views.html#materialized-views), [MongoDB](https://www.mongodb.com/docs/manual/core/materialized-views/), and [SQL Server](https://learn.microsoft.com/en-us/sql/relational-databases/views/create-indexed-views?view=sql-server-ver16) (where they're called "indexed views").
+
+Materialized views persist the result of the view query for faster access and only update it on demand.
+
+Currently, Prisma ORM does not support materialized views. However, when you [manually create a view](#create-a-view-in-the-underlying-database), you can also create a materialized view with the corresponding command in the underlying database. You can then use Prisma Client's [TypedSQL functionality](/orm/v6/prisma-client/using-raw-sql) to execute the command and refresh the view manually.
+
+In the future Prisma Client might support marking individual views as materialized and add a Prisma Client method to refresh the materialized view. Please comment on our [`views` feedback issue](https://github.com/prisma/prisma/issues/17335) with your use case.
+
