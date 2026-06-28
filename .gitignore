@@ -1,0 +1,15 @@
+# Neuledge build artifacts
+neuledge.db
+neuledge.db-wal
+neuledge.db-shm
+.context/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
