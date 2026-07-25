@@ -1,0 +1,70 @@
+
+## Introduction
+
+<img align="right" src="/img/providers/logto.svg" width="64" height="64" />
+
+# Logto Provider
+
+
+### Callback URL
+
+  <Code.Next>
+
+    ```bash
+    https://example.com/api/auth/callback/logto
+    ```
+
+  </Code.Next>
+  <Code.Svelte>
+
+    ```bash
+    https://example.com/auth/callback/logto
+    ```
+
+  </Code.Svelte>
+
+### Environment Variables
+
+```
+AUTH_LOGTO_ID
+AUTH_LOGTO_SECRET
+AUTH_LOGTO_ISSUER
+```
+
+### Configuration
+
+  <Code.Next>
+
+```ts filename="/auth.ts"
+import NextAuth from "next-auth"
+import Logto from "next-auth/providers/logto"
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [Logto],
+})
+```
+
+  </Code.Next>
+  <Code.Svelte>
+
+```ts filename="/src/auth.ts"
+import { SvelteKitAuth } from "@auth/sveltekit"
+import Logto from "@auth/sveltekit/providers/logto"
+
+export const { handle, signIn, signOut } = SvelteKitAuth({
+  providers: [Logto],
+})
+```
+
+  </Code.Svelte>
+  <Code.Express>
+
+```ts filename="/src/app.ts"
+import { ExpressAuth } from "@auth/express"
+import Logto from "@auth/express/providers/logto"
+
+app.use("/auth/*", ExpressAuth({ providers: [Logto] }))
+```
+
+  </Code.Express>
+

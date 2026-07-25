@@ -1,0 +1,33 @@
+### TResult
+
+`TResult` = `MutationState`
+
+
+### filters?
+
+```ts
+optional filters: MutationFilters;
+```
+
+Defined in: [packages/svelte-query/src/types.ts:141](https://github.com/TanStack/query/blob/main/packages/svelte-query/src/types.ts#L141)
+
+***
+
+### select()?
+
+```ts
+optional select: (mutation) => TResult;
+```
+
+Defined in: [packages/svelte-query/src/types.ts:142](https://github.com/TanStack/query/blob/main/packages/svelte-query/src/types.ts#L142)
+
+#### Parameters
+
+##### mutation
+
+`Mutation`\<`unknown`, `DefaultError`, `unknown`, `unknown`\>
+
+#### Returns
+
+`TResult`
+

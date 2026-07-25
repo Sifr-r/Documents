@@ -22,6 +22,11 @@ Reference documentation for the most-used web frameworks and tools across fronte
 | React Router | React routing and navigation (7) | [react-router/](react-router/) |
 | Zustand | Barebones hooks-based state management | [zustand/](zustand/) |
 
+| SvelteKit | Full-stack Svelte framework | [sveltekit/](sveltekit/) |
+| React Query | Async state management & fetching | [react-query/](react-query/) |
+| Vite | Next generation frontend tooling | [vite/](vite/) |
+| Tauri | Desktop & mobile app framework | [tauri/](tauri/) |
+
 ## Backend Frameworks
 
 | Framework | Language | Directory |
@@ -39,6 +44,9 @@ Reference documentation for the most-used web frameworks and tools across fronte
 | Phoenix | Elixir | [phoenix/](phoenix/) |
 | Actix Web | Rust | [actix/](actix/) |
 | Hono | Multi-runtime | [hono/](hono/) |
+| tRPC | End-to-end type-safe APIs | [trpc/](trpc/) |
+| NextAuth.js | Authentication for Next.js & Web | [next-auth/](next-auth/) |
+| Docling | Document parsing & markdown export | [docling/](docling/) |
 | LangChain | JavaScript/TypeScript (AI) | [langchain/](langchain/) |
 
 ## Testing & Quality
@@ -49,6 +57,7 @@ Reference documentation for the most-used web frameworks and tools across fronte
 | Playwright | Modern end-to-end testing | [playwright/](playwright/) |
 | Jest | JavaScript testing framework | [jest/](jest/) |
 | Vitest | Vite-native unit testing | [vitest/](vitest/) |
+| React Testing Library | React DOM testing utilities | [testing-library/](testing-library/) |
 
 ## Quick Reference
 

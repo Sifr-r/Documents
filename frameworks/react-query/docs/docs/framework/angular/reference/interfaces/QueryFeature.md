@@ -1,0 +1,4 @@
+### TFeatureKind
+
+`TFeatureKind` *extends* `QueryFeatureKind`
+

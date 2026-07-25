@@ -1,0 +1,5 @@
+
+## Returns
+
+`Box`\<`boolean`\>
+

@@ -23,6 +23,7 @@ Reference documentation for popular databases and ORMs.
 |---|---|---|
 | Prisma | TypeScript | [prisma/](prisma/) |
 | Drizzle | TypeScript | [drizzle/](drizzle/) |
+| TypeORM | TypeScript | [typeorm/](typeorm/) |
 
 ## Vector Databases
 

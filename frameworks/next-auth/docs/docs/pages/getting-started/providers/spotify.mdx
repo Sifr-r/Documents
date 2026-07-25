@@ -1,0 +1,90 @@
+
+## Introduction
+
+<img align="right" src="/img/providers/spotify.svg" height="64" width="64" />
+
+# Spotify Provider
+
+
+### Callback URL
+
+  <Code.Next>
+
+```bash
+https://example.com/api/auth/callback/spotify
+```
+
+  </Code.Next>
+  <Code.Qwik>
+
+```bash
+https://example.com/auth/callback/spotify
+```
+
+  </Code.Qwik>
+  <Code.Svelte>
+
+```bash
+https://example.com/auth/callback/spotify
+```
+
+  </Code.Svelte>
+
+### Environment Variables
+
+```
+AUTH_SPOTIFY_ID
+AUTH_SPOTIFY_SECRET
+```
+
+### Configuration
+
+  <Code.Next>
+
+```ts filename="/auth.ts"
+import NextAuth from "next-auth"
+import Spotify from "next-auth/providers/spotify"
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [Spotify],
+})
+```
+
+  </Code.Next>
+  <Code.Qwik>
+  
+```ts filename="/src/routes/plugin@auth.ts"
+import { QwikAuth$ } from "@auth/qwik"
+import Spotify from "@auth/qwik/providers/spotify"
+
+export const { onRequest, useSession, useSignIn, useSignOut } = QwikAuth$(
+  () => ({
+    providers: [Spotify],
+  })
+)
+```
+
+  </Code.Qwik>
+  <Code.Svelte>
+
+```ts filename="/src/auth.ts"
+import { SvelteKitAuth } from "@auth/sveltekit"
+import Spotify from "@auth/sveltekit/providers/spotify"
+
+export const { handle, signIn, signOut } = SvelteKitAuth({
+  providers: [Spotify],
+})
+```
+
+  </Code.Svelte>
+  <Code.Express>
+
+```ts filename="/src/app.ts"
+import { ExpressAuth } from "@auth/express"
+import Spotify from "@auth/express/providers/spotify"
+
+app.use("/auth/*", ExpressAuth({ providers: [Spotify] }))
+```
+
+  </Code.Express>
+
