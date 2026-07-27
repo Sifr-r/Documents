@@ -48,6 +48,8 @@ Reference documentation for the most-used web frameworks and tools across fronte
 | NextAuth.js | Authentication for Next.js & Web | [next-auth/](next-auth/) |
 | Docling | Document parsing & markdown export | [docling/](docling/) |
 | LangChain | JavaScript/TypeScript (AI) | [langchain/](langchain/) |
+| ComfyUI | Generative AI node-based engine & GUI | [comfyui/](comfyui/) |
+
 
 ## Testing & Quality
 

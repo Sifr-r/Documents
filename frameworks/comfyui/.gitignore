@@ -1,0 +1,22 @@
+node_modules
+.vscode/settings.json
+.backup/
+.template/
+.DS_Store
+**/.DS_Store
+docs.bak
+.claude/settings.json
+# Local secrets — copy from .env.local.example
+.env
+.env.local
+.env.*.local
+!.env.local.example
+# Translation run logs (translate-i18n.ts)
+.github/i18n-logs/
+# Local scratch + analytics cache (fetch-assistant-insights.ts → tmp/analytics-cache/)
+tmp/
+# Python bytecode
+__pycache__/
+*.py[cod]
+.work/
+.codex/

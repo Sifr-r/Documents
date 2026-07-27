@@ -1,0 +1,979 @@
+// Giscus comment system integration script for Mintlify (SPA-aware)
+(function() {
+  'use strict';
+  
+  let currentPath = '';
+  let giscusLoaded = false;
+  let intersectionObserver = null;
+  let themeObserver = null;
+  let loadingTimeout = null;
+  let routeLoadTimer = null;
+  let intersectionLoadTimer = null;
+
+  const INITIAL_LOAD_DELAY_MS = 3200;
+  const SPA_LOAD_DELAY_MS = 2200;
+  const INTERSECTION_LOAD_DELAY_MS = 1200;
+  const INTERSECTION_ROOT_MARGIN = '0px 0px 64px 0px';
+  const CONTENT_STABILITY_CHECK_INTERVAL_MS = 250;
+  const CONTENT_STABILITY_REQUIRED_MS = 1000;
+  const CONTENT_STABILITY_MAX_WAIT_MS = 5000;
+  
+  // Add CSS styles once
+  function addStyles() {
+    if (document.querySelector('#giscus-styles')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'giscus-styles';
+    style.textContent = `
+      .giscus-container {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-color, #e5e7eb);
+        max-width: none !important;
+        width: 100%;
+        box-sizing: border-box;
+        clear: both;
+        position: relative;
+        z-index: 1;
+      }
+      
+      /* Responsive design and sidebar conflict prevention */
+      .giscus-container .giscus,
+      .giscus-container .giscus-frame {
+        max-width: 100% !important;
+        width: 100% !important;
+      }
+      
+      /* Ensure proper width within content area */
+      main .giscus-container {
+        max-width: calc(100vw - 300px); /* Account for sidebar */
+      }
+      
+      @media (max-width: 1024px) {
+        main .giscus-container {
+          max-width: 100%;
+        }
+      }
+      
+      @media (max-width: 768px) {
+        .giscus-container {
+          margin-left: -1rem;
+          margin-right: -1rem;
+          padding-left: 1rem;
+          padding-right: 1rem;
+        }
+      }
+      
+      /* Hide giscus container initially to prevent flash */
+      .giscus-container.loading {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      .giscus-container.loaded {
+        opacity: 1;
+      }
+      
+      /* Lazy loading placeholder */
+      .giscus-placeholder {
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted, #666);
+        font-size: 0.875rem;
+        border: 1px dashed var(--border-color, #e5e7eb);
+        border-radius: 8px;
+        margin: 1rem 0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      
+      .giscus-placeholder:hover {
+        background: var(--hover-bg, #f9fafb);
+        border-color: var(--primary-color, #3b82f6);
+      }
+      
+      .giscus-placeholder-content {
+        text-align: center;
+        line-height: 1.5;
+      }
+      
+      .giscus-placeholder-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.5;
+      }
+      
+      /* Discussion notice styling */
+      .giscus-notice {
+        background: var(--notice-bg, #f8fafc);
+        border: 1px solid var(--notice-border, #e2e8f0);
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+        color: var(--notice-text, #475569);
+        font-size: 0.875rem;
+        line-height: 1.5;
+      }
+      
+      .giscus-notice-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--notice-title, #334155);
+      }
+      
+      .giscus-notice-button {
+        background: var(--primary-color, #3b82f6);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: background-color 0.2s ease;
+      }
+      
+      .giscus-notice-button:hover {
+        background: var(--primary-color-hover, #2563eb);
+      }
+      
+      .giscus-notice-button.secondary {
+        background: var(--secondary-color, #6b7280);
+      }
+      
+      .giscus-notice-button.secondary:hover {
+        background: var(--secondary-color-hover, #4b5563);
+      }
+      
+      /* Dark mode notice styling */
+      @media (prefers-color-scheme: dark) {
+        .giscus-notice {
+          background: var(--notice-bg-dark, #1e293b);
+          border-color: var(--notice-border-dark, #334155);
+          color: var(--notice-text-dark, #94a3b8);
+        }
+        
+        .giscus-notice-title {
+          color: var(--notice-title-dark, #e2e8f0);
+        }
+      }
+      
+      [data-theme="dark"] .giscus-notice,
+      .dark .giscus-notice {
+        background: var(--notice-bg-dark, #1e293b);
+        border-color: var(--notice-border-dark, #334155);
+        color: var(--notice-text-dark, #94a3b8);
+      }
+      
+      [data-theme="dark"] .giscus-notice-title,
+      .dark .giscus-notice-title {
+        color: var(--notice-title-dark, #e2e8f0);
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  // Remove existing giscus instances
+  function cleanupGiscus() {
+    const existingContainers = document.querySelectorAll('.giscus-container');
+    existingContainers.forEach(container => container.remove());
+    
+    // Also remove any orphaned giscus elements
+    const giscusElements = document.querySelectorAll('.giscus, giscus-widget, [class*="giscus"]');
+    giscusElements.forEach(el => {
+      if (!el.closest('.giscus-container')) {
+        el.remove();
+      }
+    });
+    
+    // Clean up observers
+    if (intersectionObserver) {
+      intersectionObserver.disconnect();
+      intersectionObserver = null;
+    }
+    
+    if (themeObserver) {
+      themeObserver.disconnect();
+      themeObserver = null;
+    }
+    
+    if (loadingTimeout) {
+      clearTimeout(loadingTimeout);
+      loadingTimeout = null;
+    }
+
+    if (routeLoadTimer) {
+      clearTimeout(routeLoadTimer);
+      routeLoadTimer = null;
+    }
+
+    if (intersectionLoadTimer) {
+      clearTimeout(intersectionLoadTimer);
+      intersectionLoadTimer = null;
+    }
+    
+    giscusLoaded = false;
+  }
+
+  // Create placeholder for lazy loading
+  function createGiscusPlaceholder() {
+    const isChinesePage = window.location.pathname.includes('/zh/') || window.location.pathname.includes('/cn/');
+    const placeholderText = isChinesePage 
+      ? '💬 点击或滚动到此处加载评论'
+      : '💬 Click or scroll here to load comments';
+    
+    const placeholder = document.createElement('div');
+    placeholder.className = 'giscus-placeholder';
+    placeholder.innerHTML = `
+      <div class="giscus-placeholder-content">
+        <div class="giscus-placeholder-icon">💬</div>
+        <div>${placeholderText}</div>
+      </div>
+    `;
+    
+    // Click to load
+    placeholder.addEventListener('click', () => {
+      loadGiscusContent(placeholder.parentElement);
+    });
+    
+    return placeholder;
+  }
+
+  // Setup intersection observer for lazy loading
+  function setupLazyLoading(container) {
+    if (!window.IntersectionObserver || giscusLoaded) return;
+    
+    intersectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !giscusLoaded) {
+          if (!intersectionLoadTimer) {
+            intersectionLoadTimer = setTimeout(() => {
+              intersectionLoadTimer = null;
+              if (giscusLoaded) return;
+              loadGiscusContent(container);
+              if (intersectionObserver) {
+                intersectionObserver.disconnect();
+                intersectionObserver = null;
+              }
+            }, INTERSECTION_LOAD_DELAY_MS);
+          }
+        } else if (intersectionLoadTimer) {
+          clearTimeout(intersectionLoadTimer);
+          intersectionLoadTimer = null;
+        }
+      });
+    }, {
+      rootMargin: INTERSECTION_ROOT_MARGIN,
+      threshold: 0.15
+    });
+    
+    intersectionObserver.observe(container);
+  }
+
+  function waitForWindowLoad() {
+    if (document.readyState === 'complete') {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      window.addEventListener('load', resolve, { once: true });
+    });
+  }
+
+  function waitForNextPaint() {
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(resolve);
+      });
+    });
+  }
+
+  async function waitForPageContentStability() {
+    await waitForWindowLoad();
+    await waitForNextPaint();
+
+    const contentRoot = document.querySelector('.mdx-content.prose, .mdx-content, main, [role="main"]');
+    if (!contentRoot) return;
+
+    await new Promise((resolve) => {
+      const startedAt = Date.now();
+      let stableForMs = 0;
+      let previousSignature = '';
+
+      const checkStability = () => {
+        const signature = [
+          contentRoot.childElementCount,
+          contentRoot.scrollHeight,
+          contentRoot.clientHeight,
+          (contentRoot.textContent || '').trim().length
+        ].join(':');
+
+        if (signature === previousSignature) {
+          stableForMs += CONTENT_STABILITY_CHECK_INTERVAL_MS;
+        } else {
+          stableForMs = 0;
+          previousSignature = signature;
+        }
+
+        const waitedTooLong = Date.now() - startedAt >= CONTENT_STABILITY_MAX_WAIT_MS;
+        if (stableForMs >= CONTENT_STABILITY_REQUIRED_MS || waitedTooLong) {
+          resolve();
+          return;
+        }
+
+        setTimeout(checkStability, CONTENT_STABILITY_CHECK_INTERVAL_MS);
+      };
+
+      checkStability();
+    });
+  }
+
+  function scheduleGiscusLoad(delayMs) {
+    const scheduledPath = window.location.pathname;
+
+    if (routeLoadTimer) {
+      clearTimeout(routeLoadTimer);
+    }
+
+    routeLoadTimer = setTimeout(async () => {
+      routeLoadTimer = null;
+
+      if (window.location.pathname !== scheduledPath) return;
+
+      await waitForPageContentStability();
+
+      if (window.location.pathname !== scheduledPath) return;
+
+      loadGiscus();
+    }, delayMs);
+  }
+  
+  // Find the best content container for giscus
+  function findContentContainer() {
+    // Wait for content to be ready
+    return new Promise((resolve) => {
+      let attempts = 0;
+      const maxAttempts = 20;
+      
+      function tryFind() {
+        // Specific selectors for Mintlify content structure
+        const selectors = [
+          // Mintlify main content container - this is the key one!
+          '.mdx-content.prose',
+          '.mdx-content',
+          // Fallback selectors
+          'main [class*="prose"]:not([class*="nav"]):not([class*="sidebar"])',
+          'main article:not([class*="nav"])',
+          'main > div > div:last-child', // Common Mintlify structure
+          '[role="main"] > div:last-child',
+          'main .content',
+          'main'
+        ];
+        
+        for (const selector of selectors) {
+          const elements = document.querySelectorAll(selector);
+          for (const element of elements) {
+            const textContent = element.textContent?.trim() || '';
+            const noExistingGiscus = !element.querySelector('.giscus-container');
+            
+            // Special handling for .mdx-content - this is our primary target
+            if (element.classList.contains('mdx-content')) {
+              if (textContent.length > 50 && noExistingGiscus) {
+                console.log('Giscus: Found mdx-content container', element);
+                resolve(element);
+                return;
+              }
+            } else {
+              // Stricter requirements for other selectors
+              const hasSubstantialContent = textContent.length > 200;
+              const notNavigation = !element.closest('[class*="nav"], nav, .sidebar');
+              
+              if (hasSubstantialContent && notNavigation && noExistingGiscus) {
+                console.log('Giscus: Found content container', selector, element);
+                resolve(element);
+                return;
+              }
+            }
+          }
+        }
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(tryFind, 250);
+        } else {
+          resolve(null);
+        }
+      }
+      
+      tryFind();
+    });
+  }
+  
+  // Get current theme from Mintlify
+  function getCurrentTheme() {
+    // Check for Mintlify's theme class on html or body
+    const html = document.documentElement;
+    const body = document.body;
+    
+    // Mintlify typically uses data attributes or classes
+    if (html.classList.contains('dark') || body.classList.contains('dark')) {
+      return 'dark';
+    } else if (html.classList.contains('light') || body.classList.contains('light')) {
+      return 'light';
+    } else if (html.dataset.theme === 'dark' || body.dataset.theme === 'dark') {
+      return 'dark';
+    } else if (html.dataset.theme === 'light' || body.dataset.theme === 'light') {
+      return 'light';
+    }
+    
+    // Fallback to system preference
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  // Update giscus theme
+  function updateGiscusTheme(theme) {
+    const giscusFrame = document.querySelector('iframe.giscus-frame');
+    if (giscusFrame) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: theme === 'dark' ? 'dark' : 'light'
+          }
+        }
+      };
+      giscusFrame.contentWindow.postMessage(message, 'https://giscus.app');
+    }
+  }
+
+  // Set up theme change observer
+  function setupThemeObserver() {
+    // Don't create multiple observers
+    if (themeObserver) {
+      return;
+    }
+    
+    // Watch for changes to the document element's attributes and classes
+    themeObserver = new MutationObserver((mutations) => {
+      let themeChanged = false;
+      
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && 
+            (mutation.attributeName === 'class' || 
+             mutation.attributeName === 'data-theme' ||
+             mutation.attributeName === 'data-color-scheme')) {
+          themeChanged = true;
+        }
+      });
+      
+      if (themeChanged) {
+        const newTheme = getCurrentTheme();
+        updateGiscusTheme(newTheme);
+      }
+    });
+
+    // Observe both html and body elements for theme changes
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme', 'data-color-scheme']
+    });
+    
+    themeObserver.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme', 'data-color-scheme']
+    });
+
+    // Also listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addEventListener('change', () => {
+      // Only update if no explicit theme is set
+      const html = document.documentElement;
+      const body = document.body;
+      if (!html.classList.contains('dark') && !html.classList.contains('light') &&
+          !body.classList.contains('dark') && !body.classList.contains('light') &&
+          !html.dataset.theme && !body.dataset.theme) {
+        const newTheme = getCurrentTheme();
+        updateGiscusTheme(newTheme);
+      }
+    });
+  }
+
+  // Generate GitHub Discussions URL for current page
+  function generateDiscussionUrl() {
+    const repoOwner = 'Comfy-Org';
+    const repoName = 'docs';
+    const currentPath = window.location.pathname;
+    const currentTitle = document.title || 'Discussion';
+    const currentUrl = window.location.href;
+    
+    // Extract meaningful part of the path for search
+    const pathSegments = currentPath.split('/').filter(Boolean);
+    let searchQuery = '';
+    
+    if (pathSegments.length > 0) {
+      // Use the complete path as search term, keeping language prefixes
+      // Example: /zh/development/core-concepts/workflow -> "zh development core concepts workflow"
+      searchQuery = pathSegments
+        .join(' ')
+        .replace(/[-_]/g, ' ') // Replace dashes/underscores with spaces
+        .replace(/\s+/g, ' ') // Normalize multiple spaces
+        .trim();
+    }
+    
+    // If no meaningful path, use page title
+    if (!searchQuery && currentTitle) {
+      searchQuery = currentTitle.replace(/[^\w\s]/g, '').trim();
+    }
+    
+    // Create search URL to find existing discussions
+    if (searchQuery) {
+      const encodedQuery = encodeURIComponent(searchQuery);
+      return `https://github.com/${repoOwner}/${repoName}/discussions?discussions_q=${encodedQuery}`;
+    }
+    
+    // Fallback to discussions main page
+    return `https://github.com/${repoOwner}/${repoName}/discussions`;
+  }
+  
+  // Show friendly discussion notice
+  function showGiscusNotice(container, noticeType = 'rate_limit') {
+    const discussionUrl = generateDiscussionUrl();
+    
+    const noticeMessages = {
+      rate_limit: {
+        en: {
+          title: '💬 Join the Discussion',
+          message: 'Comments are temporarily unavailable due to high traffic.',
+          suggestion: 'Retry loading comments, or check GitHub for an existing discussion about this page.',
+          discussionLink: 'Find Related Discussions',
+          retryLink: 'Retry Comments'
+        },
+        zh: {
+          title: '💬 参与讨论',
+          message: '由于访问量较高，评论功能暂时不可用。',
+          suggestion: '请重试加载评论，或前往 GitHub 查找此页面已有的讨论。',
+          discussionLink: '查找相关讨论',
+          retryLink: '重试评论'
+        },
+        ja: {
+          title: '💬 ディスカッションに参加',
+          message: 'アクセスが集中しているため、コメント機能は一時的にご利用いただけません。',
+          suggestion: 'コメントの再読み込みを試すか、GitHub でこのページに関する既存のディスカッションを確認してください。',
+          discussionLink: '関連ディスカッションを検索',
+          retryLink: 'コメントを再読み込み'
+        },
+        ko: {
+          title: '💬 토론에 참여하기',
+          message: '접속량이 많아 댓글 기능을 일시적으로 사용할 수 없습니다.',
+          suggestion: '댓글을 다시 불러오거나 GitHub에서 이 페이지의 기존 토론을 확인해 주세요.',
+          discussionLink: '관련 토론 찾기',
+          retryLink: '댓글 다시 불러오기'
+        }
+      },
+      network: {
+        en: {
+          title: '💬 Join the Discussion',
+          message: 'Comments could not be loaded at this time.',
+          suggestion: 'Retry loading comments, or check GitHub for an existing discussion about this page.',
+          discussionLink: 'Find Related Discussions',
+          retryLink: 'Retry Comments'
+        },
+        zh: {
+          title: '💬 参与讨论',
+          message: '评论暂时无法加载。',
+          suggestion: '请重试加载评论，或前往 GitHub 查找此页面已有的讨论。',
+          discussionLink: '查找相关讨论',
+          retryLink: '重试评论'
+        },
+        ja: {
+          title: '💬 ディスカッションに参加',
+          message: 'コメントを読み込めませんでした。',
+          suggestion: 'コメントの再読み込みを試すか、GitHub でこのページに関する既存のディスカッションを確認してください。',
+          discussionLink: '関連ディスカッションを検索',
+          retryLink: 'コメントを再読み込み'
+        },
+        ko: {
+          title: '💬 토론에 참여하기',
+          message: '지금은 댓글을 불러올 수 없습니다.',
+          suggestion: '댓글을 다시 불러오거나 GitHub에서 이 페이지의 기존 토론을 확인해 주세요.',
+          discussionLink: '관련 토론 찾기',
+          retryLink: '댓글 다시 불러오기'
+        }
+      }
+    };
+
+    const isChinesePage = window.location.pathname.includes('/zh/') || window.location.pathname.includes('/cn/');
+    const isJapanesePage = window.location.pathname.includes('/ja/');
+    const isKoreanPage = window.location.pathname.includes('/ko/');
+    const lang = isKoreanPage ? 'ko' : isJapanesePage ? 'ja' : isChinesePage ? 'zh' : 'en';
+    const notice = noticeMessages[noticeType][lang];
+    
+    const noticeDiv = document.createElement('div');
+    noticeDiv.className = 'giscus-notice';
+    noticeDiv.innerHTML = `
+      <div class="giscus-notice-title">${notice.title}</div>
+      <div>${notice.message}</div>
+      <div style="margin-top: 0.5rem; opacity: 0.8;">${notice.suggestion}</div>
+      <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="${discussionUrl}" target="_blank" class="giscus-notice-button">${notice.discussionLink}</a>
+        <button type="button" class="giscus-notice-button secondary" data-giscus-retry>${notice.retryLink}</button>
+      </div>
+    `;
+
+    noticeDiv.querySelector('[data-giscus-retry]').addEventListener('click', () => {
+      window.retryGiscus();
+    });
+    
+    // Remove any previously inserted notice to avoid duplicates, but keep the
+    // original giscus iframe/content intact so false-positive detections don't
+    // erase a successfully loaded comment widget.
+    const existingNotice = container.querySelector('.giscus-notice');
+    if (existingNotice) {
+      existingNotice.remove();
+    }
+    
+    container.appendChild(noticeDiv);
+    container.classList.remove('loading');
+    container.classList.add('loaded');
+  }
+
+  // Legacy retry function (may not be needed now)
+  window.retryGiscus = function() {
+    const container = document.querySelector('.giscus-container');
+    if (!container) return;
+    
+    // Simply reload the giscus content
+    giscusLoaded = false; // Reset the loaded flag
+    loadGiscusContent(container);
+  };
+
+  // Listen for giscus messages to detect rate limit errors
+  function setupGiscusErrorListener() {
+    window.addEventListener('message', function(event) {
+      if (event.origin !== 'https://giscus.app') return;
+      
+      const message = event.data;
+      console.log('Giscus message received:', message); // Debug log
+      
+      const container = document.querySelector('.giscus-container');
+      if (!container) return;
+      
+      // Check for various error patterns
+      if (message && message.giscus) {
+        // Standard giscus error format
+        if (message.giscus.error) {
+          const errorType = message.giscus.error.type;
+          console.warn('Giscus error detected:', errorType, message.giscus.error);
+          
+          if (errorType === 'rate_limit' || errorType === 'rate-limit' || errorType === 'RATE_LIMITED') {
+            showGiscusNotice(container, 'rate_limit');
+          } else {
+            showGiscusNotice(container, 'network');
+          }
+        }
+        
+        // Check for discussion data with error indicators
+        if (message.giscus.discussion === null && message.giscus.viewer === null) {
+          // This might indicate a rate limit or auth issue
+          console.warn('Giscus: No discussion data, possibly rate limited');
+          setTimeout(() => {
+            if (container.querySelector('.giscus-frame')) {
+              const iframe = container.querySelector('.giscus-frame');
+              if (iframe && iframe.contentDocument) {
+                const errorElements = iframe.contentDocument.querySelectorAll('[class*="error"], [class*="Error"]');
+                if (errorElements.length > 0) {
+                  console.warn('Giscus: Error elements found in iframe');
+                  showGiscusNotice(container, 'rate_limit');
+                }
+              }
+            }
+          }, 3000);
+        }
+      }
+      
+      // Also check for direct error messages in the content
+      if (typeof message === 'string' && message.includes('rate limit')) {
+        console.warn('Giscus: Rate limit detected in string message');
+        showGiscusNotice(container, 'rate_limit');
+      }
+    });
+    
+    // Additional error detection: Monitor iframe content changes
+    const checkForErrors = () => {
+      const container = document.querySelector('.giscus-container');
+      const iframe = document.querySelector('.giscus-frame');
+      
+      if (iframe && container) {
+        try {
+          // Check if iframe has loaded and has error content
+          setTimeout(() => {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            if (iframeDoc) {
+              const bodyText = iframeDoc.body ? iframeDoc.body.textContent || '' : '';
+              if (bodyText.includes('rate limit') || bodyText.includes('API rate limit') || bodyText.includes('exceeded')) {
+                console.warn('Giscus: Rate limit detected in iframe content');
+                showGiscusNotice(container, 'rate_limit');
+              } else if (bodyText.includes('error occurred')) {
+                console.warn('Giscus: Generic error detected in iframe content');
+                showGiscusNotice(container, 'rate_limit'); // Assume it's rate limit for now
+              }
+            }
+          }, 5000); // Check after 5 seconds
+        } catch (e) {
+          // Cross-origin restrictions, can't access iframe content
+          console.log('Cannot access iframe content due to CORS');
+        }
+      }
+    };
+    
+    // Run error check periodically
+    setTimeout(checkForErrors, 6000);
+  }
+
+  // Load actual giscus content
+  function loadGiscusContent(container) {
+    if (giscusLoaded) return;
+    giscusLoaded = true;
+    
+    // Clear placeholder
+    container.innerHTML = '';
+    container.className = 'giscus-container loading';
+    
+    // Get current theme and path info
+    const currentTheme = getCurrentTheme();
+    const newPath = window.location.pathname;
+    
+    // Create giscus script
+    const script = document.createElement('script');
+    script.src = 'https://giscus.app/client.js';
+    script.setAttribute('data-repo', 'Comfy-Org/docs');
+    script.setAttribute('data-repo-id', 'R_kgDOLlassQ'); // Replace with real ID
+    script.setAttribute('data-category', 'Announcements');
+    script.setAttribute('data-category-id', 'DIC_kwDOLlassc4CtQoz'); // Replace with real ID
+    script.setAttribute('data-mapping', 'pathname');
+    script.setAttribute('data-strict', '1');
+    script.setAttribute('data-reactions-enabled', '1');
+    script.setAttribute('data-emit-metadata', '0');
+    script.setAttribute('data-input-position', 'bottom');
+    script.setAttribute('data-theme', currentTheme === 'dark' ? 'dark' : 'light');
+    
+    // Set language based on path
+    const isChinesePage = newPath.includes('/zh/') || newPath.includes('/cn/');
+    const isJapanesePage = newPath.includes('/ja/');
+    const isKoreanPage = newPath.includes('/ko/');
+    const giscusLang = isKoreanPage ? 'ko' : isJapanesePage ? 'ja' : isChinesePage ? 'zh' : 'en';
+    script.setAttribute('data-lang', giscusLang);
+    
+    // Debug logging
+    console.log('Giscus: Current path:', newPath);
+    console.log('Giscus: Is Chinese page:', isChinesePage);
+    console.log('Giscus: Language set to:', giscusLang);
+    script.setAttribute('crossorigin', 'anonymous');
+    script.async = true;
+    
+    // Handle giscus load event and errors
+    script.onload = () => {
+      // Clear the loading timeout since script loaded successfully
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        loadingTimeout = null;
+      }
+      
+      setTimeout(() => {
+        container.classList.remove('loading');
+        container.classList.add('loaded');
+        
+        // Set up theme observer after giscus loads
+        setupThemeObserver();
+      }, 1000);
+    };
+    
+    script.onerror = () => {
+      // Clear the loading timeout since we got an error
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        loadingTimeout = null;
+      }
+      
+      console.error('Giscus: Failed to load giscus script');
+      showGiscusNotice(container, 'network');
+    };
+    
+    // Set up a timeout to detect if giscus fails to load
+    loadingTimeout = setTimeout(() => {
+      // Check if giscus is still loading or showing an error
+      const iframe = container.querySelector('.giscus-frame');
+      const hasError = container.querySelector('.giscus-error');
+      
+      if (container.classList.contains('loading') || (iframe && !hasError)) {
+        // Check iframe content for errors if possible
+        try {
+          if (iframe && iframe.contentDocument) {
+            const iframeDoc = iframe.contentDocument;
+            const bodyText = iframeDoc.body ? iframeDoc.body.textContent || '' : '';
+            
+            if (bodyText.includes('error occurred') || bodyText.includes('rate limit') || bodyText.includes('exceeded')) {
+              console.warn('Giscus: Error detected in iframe after timeout');
+              showGiscusNotice(container, 'rate_limit');
+            }
+          } else {
+            console.warn('Giscus: Loading timeout, possibly rate limited');
+            showGiscusNotice(container, 'rate_limit');
+          }
+        } catch (e) {
+          // Can't access iframe due to CORS, assume rate limit
+          console.warn('Giscus: Loading timeout, assuming rate limited');
+          showGiscusNotice(container, 'rate_limit');
+        }
+      }
+      loadingTimeout = null;
+    }, 8000); // Reduced to 8 second timeout for faster detection
+    
+    container.appendChild(script);
+  }
+
+  // Create and insert giscus container with lazy loading
+  async function loadGiscus() {
+    const newPath = window.location.pathname;
+    
+    // Exclude paths that should not have comments
+    const excludedPaths = ['/', '/zh', '/ja', '/ko'];
+
+    // Skip if current path is in excluded list or contains API/search paths
+    if (excludedPaths.includes(newPath) || newPath.includes('/api/') || newPath.includes('/search')) {
+      return;
+    }
+    
+    currentPath = newPath;
+    cleanupGiscus();
+    
+    const contentContainer = await findContentContainer();
+    if (!contentContainer) {
+      console.warn('Giscus: Could not find suitable content container');
+      return;
+    }
+    
+    // Create giscus container with placeholder
+    const giscusContainer = document.createElement('div');
+    giscusContainer.className = 'giscus-container';
+    
+    // Add placeholder for lazy loading
+    const placeholder = createGiscusPlaceholder();
+    giscusContainer.appendChild(placeholder);
+    
+    // Insert at the end of content, but before any navigation
+    const navElements = contentContainer.querySelectorAll('nav, .pagination, [class*="nav"]:last-child');
+    if (navElements.length > 0) {
+      const lastNav = navElements[navElements.length - 1];
+      contentContainer.insertBefore(giscusContainer, lastNav);
+    } else {
+      contentContainer.appendChild(giscusContainer);
+    }
+    
+    // Setup lazy loading
+    setupLazyLoading(giscusContainer);
+  }
+  
+  // Handle SPA navigation
+  function setupSPAHandling() {
+    // Listen for URL changes (SPA navigation)
+    let lastUrl = location.href;
+    
+    new MutationObserver(() => {
+      const url = location.href;
+      if (url !== lastUrl) {
+        lastUrl = url;
+        scheduleGiscusLoad(SPA_LOAD_DELAY_MS);
+      }
+    }).observe(document, {subtree: true, childList: true});
+    
+    // Also listen for popstate events
+    window.addEventListener('popstate', () => {
+      scheduleGiscusLoad(SPA_LOAD_DELAY_MS);
+    });
+    
+    // Listen for pushstate/replacestate (modern SPA frameworks)
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+    
+    history.pushState = function() {
+      originalPushState.apply(history, arguments);
+      scheduleGiscusLoad(SPA_LOAD_DELAY_MS);
+    };
+    
+    history.replaceState = function() {
+      originalReplaceState.apply(history, arguments);
+      scheduleGiscusLoad(SPA_LOAD_DELAY_MS);
+    };
+  }
+  
+  // Debug functions for testing notice messages
+  window.giscusDebug = {
+    // Force show rate limit notice
+    showRateLimitNotice: () => {
+      const container = document.querySelector('.giscus-container');
+      if (container) {
+        showGiscusNotice(container, 'rate_limit');
+      } else {
+        console.warn('No giscus container found. Wait for page to load giscus placeholder first.');
+      }
+    },
+    
+    // Force show network notice
+    showNetworkNotice: () => {
+      const container = document.querySelector('.giscus-container');
+      if (container) {
+        showGiscusNotice(container, 'network');
+      } else {
+        console.warn('No giscus container found. Wait for page to load giscus placeholder first.');
+      }
+    },
+    
+    // Reset to placeholder
+    resetToPlaceholder: () => {
+      const container = document.querySelector('.giscus-container');
+      if (container) {
+        container.innerHTML = '';
+        const placeholder = createGiscusPlaceholder();
+        container.appendChild(placeholder);
+        setupLazyLoading(container);
+        giscusLoaded = false;
+      }
+    },
+    
+    // Test URL generation
+    testUrls: () => {
+      const searchUrl = generateDiscussionUrl();
+      console.log('Current page path:', window.location.pathname);
+      console.log('Search URL:', searchUrl);
+      return { searchUrl };
+    }
+  };
+
+  // Initialize
+  function init() {
+    addStyles();
+    setupSPAHandling();
+    setupGiscusErrorListener();
+    
+    // Add debug info
+    console.log('Giscus Debug Commands Available:');
+    console.log('- giscusDebug.showRateLimitNotice() - Show rate limit notice');
+    console.log('- giscusDebug.showNetworkNotice() - Show network notice'); 
+    console.log('- giscusDebug.resetToPlaceholder() - Reset to placeholder');
+    console.log('- giscusDebug.testUrls() - Test URL generation for current page');
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        scheduleGiscusLoad(INITIAL_LOAD_DELAY_MS);
+      });
+    } else {
+      scheduleGiscusLoad(INITIAL_LOAD_DELAY_MS);
+    }
+  }
+  
+  init();
+})();

@@ -1,0 +1,107 @@
+---
+title: "異なるシステムで ComfyUI を手動インストールする方法"
+Description: "このセクションでは、Windows、MacOS、Linux での手動インストールプロセスをガイドします"
+icon: "wrench"
+sidebarTitle: "手動インストール"
+translationSourceHash: 062a9112
+translationFrom: installation/manual_install.mdx
+translationBlockHashes:
+  "_intro": 61faae8e
+  "Create a virtual environment": 5eb1c645
+  "Clone the ComfyUI code repository": 9cf6c41a
+  "Install GPU and ComfyUI dependencies": 43c8b909
+  "How to update ComfyUI": 8f0d9365
+  "FAQ": 71de4f2d
+---
+
+
+import Conda from "/snippets/ja/conda.mdx";
+import PipInstall from "/snippets/ja/pip-install.mdx";
+import InstallGpuDependencies from "/snippets/ja/install-gpu-dependencies.mdx";
+import RunComfy from "/snippets/ja/run-comfy.mdx";
+import AddExternalModels from "/snippets/ja/install/add-external-models.mdx"
+import DockerNotice from "/snippets/ja/install/docker-notice.mdx"
+
+
+ComfyUI のインストールは、主に以下のいくつかのステップに分かれます：
+1. 仮想環境を作成する（システムレベルの Python 環境を汚染しないため）
+2. ComfyUI コードリポジトリをクローンする
+3. 依存関係をインストールする
+4. ComfyUI を起動する
+
+ComfyUI のインストールには、[ComfyUI CLI](/ja/comfy-cli/getting-started) を参照することもできます。これは、ComfyUI を簡単にインストールし、その依存関係を管理できるコマンドラインツールです。
+
+
+## 仮想環境の作成
+
+<Tip>
+    独立した仮想環境は必要です。ComfyUI の依存関係がシステム上の他の依存関係と競合する可能性があり、システムレベルの Python 環境を汚染することも避けることができるためです。
+</Tip>
+
+<Conda />
+
+## ComfyUI コードリポジトリのクローン
+
+システムに [Git](https://git-scm.com/downloads) がインストールされていることを確認する必要があります。まず、ターミナル（コマンドライン）を開き、次にコードリポジトリをクローンします。
+<Tabs>
+<Tab title="Windows">
+<Warning>Microsoft Visual C++ Redistributable をインストールしていない場合は、[こちら](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170) からインストールしてください。</Warning>
+</Tab>
+<Tab title="Linux">
+ターミナルアプリケーションを開きます。
+</Tab>
+<Tab title="MacOS">
+[ターミナルアプリケーション](https://support.apple.com/guide/terminal/open-or-quit-terminal-apd5265185d-f365-44cb-8b09-71a064a42125/mac) を開きます。
+</Tab>
+</Tabs>
+
+```bash
+git clone https://github.com/Comfy-Org/ComfyUI.git
+```
+
+## GPU および ComfyUI 依存関係のインストール
+
+<Steps>
+    <Step title="GPU 依存関係のインストール">
+   <InstallGpuDependencies />
+    </Step>
+    <Step title="ComfyUI 依存関係のインストール">
+    <PipInstall />
+    </Step>
+    <Step title="ComfyUI の起動">
+    <RunComfy />
+    </Step>
+</Steps>
+
+高度なサーバー設定（カスタムポート、LAN アクセス、VRAM モードなど）については、[起動オプションリファレンス](/ja/development/comfyui-server/startup-flags)を参照してください。
+
+## ComfyUI の更新方法
+
+<Steps>
+    <Step title="最新コードの取得">
+    コマンドラインを使用して ComfyUI のインストールパスに入り、最新コードを取得します。
+    ```bash
+    cd <installation path>/ComfyUI
+    git pull
+    ```
+    </Step>
+    <Step title="依存関係のインストール">
+    コマンドラインを使用して ComfyUI のインストールパスに入り、依存関係をインストールします。
+    <Warning>
+    現在の Python 環境が ComfyUI の仮想環境であることを確認する必要があります。そうでない場合、依存関係がシステムレベルの Python 環境にインストールされ、システムレベルの Python 環境を汚染してしまいます。
+    </Warning>
+    ```bash
+        pip install -r requirements.txt
+    ```
+    </Step>
+</Steps>
+
+<AddExternalModels/>
+
+## よくある質問
+
+<DockerNotice />
+
+### ComfyUI の停止/終了方法
+
+ComfyUI を実行しているターミナルウィンドウで **Ctrl+C** を押すか、ターミナルウィンドウを閉じてください。

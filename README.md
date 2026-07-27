@@ -15,7 +15,7 @@ query in milliseconds.
 
 ```
 languages/          # 28 programming languages (JS, Python, Rust, Go, Java, C#, …)
-frameworks/         # 33 web frameworks & libraries (React, Vue, Next.js, Nuxt, Hono, Cypress, Playwright, Jest, Vitest, Zustand, …)
+frameworks/         # 34 web frameworks & libraries (React, Vue, Next.js, Nuxt, Hono, ComfyUI, Cypress, Playwright, Jest, Vitest, Zustand, …)
 databases/          # 8 databases & ORMs (PostgreSQL, MongoDB, Redis, Prisma, Vector DBs, …)
 devops/             # 8 DevOps tools (Docker, Kubernetes, Terraform, Nginx, Context, Graph, …)
 web-platform/       # HTML, CSS, Web APIs

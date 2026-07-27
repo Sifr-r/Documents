@@ -1,0 +1,115 @@
+name: Redirect Check
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/*.mdx'
+      - 'docs.json'
+
+jobs:
+  check-redirects:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Check for moved files and redirects
+        id: check-redirects
+        run: |
+          # Get list of deleted MDX files (potentially moved) in the PR diff only
+          # Using three-dot diff to check only the actual changes in this PR,
+          # not all historical commits on the branch (avoids false positives
+          # when unrelated past commits deleted files)
+          DELETED_FILES=$(git diff --diff-filter=D --name-only ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} | grep "\.mdx$" | sort | uniq)
+          
+          # Exit if no MDX files were deleted
+          if [ -z "$DELETED_FILES" ]; then
+            echo "No MDX files were deleted. Skipping redirect check."
+            exit 0
+          fi
+          
+          echo "Deleted files (potentially moved):"
+          echo "$DELETED_FILES"
+          echo "------------------------"
+          
+          # Check if redirects are added in docs.json for deleted files
+          DOCS_JSON_CHANGED=$(git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} | grep -q "docs.json" && echo "true" || echo "false")
+          
+          if [ "$DOCS_JSON_CHANGED" = "false" ]; then
+            echo "⚠️ WARNING: docs.json was not modified even though files were deleted/moved."
+            echo "If you have moved files, you should add redirects in docs.json."
+            
+            # Exit with a warning but don't fail the check if docs.json wasn't modified
+            # This handles cases where files are actually being deleted, not moved
+            exit 0
+          fi
+          
+          # Check docs.json content for redirects
+          echo "Checking docs.json for redirects..."
+
+          # Use Node.js to check redirects with wildcard support
+          node -e "
+            const fs = require('fs');
+            const docsJson = JSON.parse(fs.readFileSync('docs.json', 'utf8'));
+            const deletedFiles = process.argv.slice(1);
+            const redirects = docsJson.redirects || [];
+
+            function matchesPattern(filePath, pattern) {
+              pattern = pattern.replace(/^\//, '');
+              filePath = filePath.replace(/^\//, '');
+              const regexPattern = pattern
+                .replace(/\//g, '\\\\/')
+                .replace(/:slug\*/g, '.*')
+                .replace(/:slug/g, '[^/]+')
+                .replace(/\*/g, '.*');
+              const regex = new RegExp(\`^\${regexPattern}$\`);
+              return regex.test(filePath);
+            }
+
+            const missing = [];
+            for (const file of deletedFiles) {
+              const sourcePath = file.replace(/\.mdx$/, '');
+              const hasRedirect = redirects.some(redirect => {
+                const redirectSource = redirect.source.replace(/^\//, '');
+                const filePathNormalized = sourcePath.replace(/^\//, '');
+                return redirectSource === filePathNormalized || matchesPattern(filePathNormalized, redirectSource);
+              });
+
+              if (hasRedirect) {
+                console.log(\`✅ Found redirect for moved file: \${file}\`);
+              } else {
+                console.log(\`❌ Missing redirect in docs.json for: \${file}\`);
+                missing.push(file);
+              }
+            }
+
+            if (missing.length > 0) {
+              console.log('------------------------');
+              console.log('❌ The following files were moved but missing redirects in docs.json:');
+              missing.forEach(file => console.log(\`- \${file}\`));
+              console.log('------------------------');
+              console.log('Please add redirects in docs.json for moved files using the format:');
+              console.log('{\"redirects\":[{\"source\":\"/path/to/old-file\",\"destination\":\"/path/to/new-file\"}]}');
+              console.log('Or use wildcard patterns like:');
+              console.log('{\"redirects\":[{\"source\":\"/old-path/:slug*\",\"destination\":\"/new-path/:slug*\"}]}');
+              console.log('------------------------');
+              console.log('For more information, see the documentation in README.md');
+              process.exit(1);
+            } else {
+              console.log('------------------------');
+              console.log('✅ All moved files have corresponding redirects in docs.json.');
+            }
+          " $DELETED_FILES
